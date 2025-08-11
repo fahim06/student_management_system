@@ -86,6 +86,16 @@
                         <div class="d-grid gap-2">
                             <button type="submit" class="btn btn-primary">Sign In</button>
                         </div>
+                        {% if messages %}
+                            <div class="col-12">
+                                {% for message in messages %}
+                                    {% if message.tags == 'error' %}
+                                        <div class="alert alert-danger"
+                                             style="margin-top: 10px;text-align: center ">{{ message }}</div>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
                     </div>
                     <!-- /.col -->
                 </div>
