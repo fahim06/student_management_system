@@ -6,27 +6,27 @@ __pycache__/
 
 # Database files
 *.sqlite3
-*.db
 
 # IDE files
 .vscode/
 .idea/
 
 # Environment variables
+# This is the most important part for keeping secrets safe!
 .env
 
 # OS
 *.swp
 .DS_Store
 
-# Compiled Python files
-*.pyc
-
 # Virtual environment
 venv/
 
-# Django migration files
-**/migrations/
+# Django project specific
+# Ignore user-uploaded files
+/media/
+# Ignore collected static files for deployment
+/static/
 
 # Local settings
 local_settings.py
