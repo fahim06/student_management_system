@@ -1,0 +1,158 @@
+{% load static %}
+
+<!--begin::Sidebar-->
+<aside class="app-sidebar bg-body-secondary shadow" data-bs-theme="dark">
+    <!--begin::Sidebar Brand-->
+    <div class="sidebar-brand">
+        <!--begin::Brand Link-->
+        <a href="admin_home" class="brand-link">
+            <!--begin::Brand Image-->
+            <img
+                    src="{% static './assets/img/AdminLTELogo.png' %}"
+                    alt="AdminLTE Logo"
+                    class="brand-image opacity-75 shadow"
+            />
+            <!--end::Brand Image-->
+            <!--begin::Brand Text-->
+            <span class="brand-text fw-light">Admin</span>
+            <!--end::Brand Text-->
+        </a>
+        <!--end::Brand Link-->
+    </div>
+    <!--end::Sidebar Brand-->
+    <!--begin::Sidebar Wrapper-->
+    <div class="sidebar-wrapper">
+        <nav class="mt-2">
+            <!--begin::Sidebar Menu-->
+            <ul
+                    class="nav sidebar-menu flex-column"
+                    data-lte-toggle="treeview"
+                    role="navigation"
+                    aria-label="Main navigation"
+                    data-accordion="false"
+                    id="navigation"
+            >
+                <li class="nav-item">
+                    <a href="/add_staff" class="nav-link">
+                        <i class="nav-icon bi bi-person-plus-fill"></i>
+                        <p>
+                            Add Staff
+                            <span class="float-end nav-badge bg-danger">New</span>
+                        </p>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/add_staff" class="nav-link">
+                        <i class="nav-icon bi bi-people"></i>
+                        <p>
+                            Manage Staffs
+                            <span class="float-end nav-badge bg-danger">New</span>
+                        </p>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/add_student" class="nav-link">
+                        <i class="nav-icon bi bi-person-plus-fill"></i>
+                        <p>
+                            Add Student
+                            <span class="float-end nav-badge bg-danger">New</span>
+                        </p>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/add_staff" class="nav-link">
+                        <i class="nav-icon bi bi-people"></i>
+                        <p>
+                            Manage Students
+                            <span class="float-end nav-badge bg-danger">New</span>
+                        </p>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/add_staff" class="nav-link">
+                        <i class="nav-icon bi bi-journal-plus"></i>
+                        <p>
+                            Add Course
+                            <span class="float-end nav-badge bg-danger">New</span>
+                        </p>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/add_staff" class="nav-link">
+                        <i class="nav-icon bi bi-journals"></i>
+                        <p>
+                            Manage Course
+                            <span class="float-end nav-badge bg-danger">New</span>
+                        </p>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/add_staff" class="nav-link">
+                        <i class="nav-icon bi bi-file-earmark-plus-fill"></i>
+                        <p>
+                            Add Subject
+                            <span class="float-end nav-badge bg-danger">New</span>
+                        </p>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/add_staff" class="nav-link">
+                        <i class="nav-icon bi bi-file-earmark-text"></i>
+                        <p>
+                            Manage Subject
+                            <span class="float-end nav-badge bg-danger">New</span>
+                        </p>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/add_staff" class="nav-link">
+                        <i class="nav-icon bi bi-clipboard-check"></i>
+                        <p>
+                            View attendance
+                            <span class="float-end nav-badge bg-danger">New</span>
+                        </p>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/add_staff" class="nav-link">
+                        <i class="nav-icon bi bi-chat-left-dots-fill"></i>
+                        <p>
+                            Student Feedback
+                            <span class="float-end nav-badge bg-danger">New</span>
+                        </p>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/add_staff" class="nav-link">
+                        <i class="nav-icon bi bi-chat-right-dots-fill"></i>
+                        <p>
+                            Staff Feedback
+                            <span class="float-end nav-badge bg-danger">New</span>
+                        </p>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/add_staff" class="nav-link">
+                        <i class="nav-icon bi bi-person-walking"></i>
+                        <p>
+                            Student Leave
+                            <span class="float-end nav-badge bg-danger">New</span>
+                        </p>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/add_staff" class="nav-link">
+                        <i class="nav-icon bi bi-person-walking"></i>
+                        <p>
+                            Staff Leave
+                            <span class="float-end nav-badge bg-danger">New</span>
+                        </p>
+                    </a>
+                </li>
+            </ul>
+            <!--end::Sidebar Menu-->
+        </nav>
+    </div>
+    <!--end::Sidebar Wrapper-->
+</aside>
+<!--end::Sidebar-->
