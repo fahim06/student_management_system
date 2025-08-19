@@ -21,8 +21,15 @@ def doLogin(request):
                             password=request.POST.get("password"))
         if user != None:
             login(request, user)
+            if user.user_type == "1":
+                return HttpResponseRedirect('/admin_home')
+            elif user.user_type == "2":
+                # return HttpResponseRedirect('/staff_home')
+                return HttpResponse("Staff login " + str(user.user_type))
+            elif user.user_type == "3":
+                # return HttpResponseRedirect('/student_home')
+                return HttpResponse("Student login " + str(user.user_type))
 
-            return HttpResponseRedirect('/admin_home')
 
         else:
             messages.error(request, "Invalid Login Details")
