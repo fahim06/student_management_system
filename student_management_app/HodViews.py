@@ -5,7 +5,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.utils import timezone
 
-from student_management_app.models import CustomUser, Courses
+from student_management_app.models import CustomUser, Courses, Staff, Subject, Student
 
 
 def admin_home(request):
@@ -98,3 +98,49 @@ def add_student_save(request):
         except Exception as e:
             messages.error(request, f"Failed to Add Student: {e}")
             return HttpResponseRedirect("/add_student")
+
+
+def add_subject(request):
+    courses = Courses.objects.all()
+    staffs = CustomUser.objects.filter(user_type=2)
+    return render(request, "hod_template/add_subject_template.html", {"staffs": staffs, "courses": courses})
+
+
+def add_subject_save(request):
+    if request.method != "POST":
+        return HttpResponse("<h2>Method Not Allowed</h2>")
+    else:
+        subject_name = request.POST.get("subject")
+        course_id = request.POST.get("course")
+        course = Courses.objects.get(id=course_id)
+        staff_id = request.POST.get("staff")
+        staff = CustomUser.objects.get(id=staff_id)
+
+        try:
+            subject = Subject(subject_name=subject_name, course_id=course, staff_id=staff)
+            subject.save()
+            messages.success(request, "Successfully Added Subject")
+            return HttpResponseRedirect("/add_subject")
+        except Exception as e:
+            messages.error(request, f"Failed to Add Subject: {e}")
+            return HttpResponseRedirect("/add_subject")
+
+
+def manage_staff(request):
+    staffs = Staff.objects.all()
+    return render(request, "hod_template/manage_staff_template.html", {"staffs": staffs})
+
+
+def manage_student(request):
+    students = Student.objects.all()
+    return render(request, "hod_template/manage_student_template.html", {"students": students})
+
+
+def manage_course(request):
+    courses = Courses.objects.all()
+    return render(request, "hod_template/manage_course_template.html", {"courses": courses})
+
+
+def manage_subject(request):
+    subjects = Subject.objects.all()
+    return render(request, "hod_template/manage_subject_template.html", {"subjects": subjects})
