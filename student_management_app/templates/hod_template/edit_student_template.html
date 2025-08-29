@@ -14,7 +14,7 @@
                     </div>
                     <!--end::Header-->
                     <!--begin::Form-->
-                    <form role="form" action="/edit_student_save" method="post">
+                    <form role="form" action="/edit_student_save" method="post" enctype="multipart/form-data">
                         {% csrf_token %}
                         <!--begin::Body-->
                         <div class="card-body">
@@ -59,6 +59,10 @@
                                     <option {% if student.gender == 'Male' %} selected {% endif %}>Male</option>
                                     <option {% if student.gender == 'Female' %} selected {% endif %}>Female</option>
                                 </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Profile Picture</label>
+                                <input type="file" class="form-control" name="profile_picture">
                             </div>
                             <br>
                             <div class="form-group">

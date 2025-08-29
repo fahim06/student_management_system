@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from django.contrib import messages
+from django.core.files.storage import FileSystemStorage
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.utils import timezone
@@ -76,6 +77,12 @@ def add_student_save(request):
         session_end = request.POST.get("session_end")
         course_id = request.POST.get("course")
         sex = request.POST.get("sex")
+
+        profile_picture = request.FILES.get("profile_picture")
+        fileStorage = FileSystemStorage()
+        filename = fileStorage.save(profile_picture.name, profile_picture)
+        profile_picture_url = fileStorage.url(filename)
+
         try:
             user = CustomUser.objects.create_user(username=username, password=password, email=email,
                                                   first_name=first_name, last_name=last_name, user_type=3)
@@ -91,7 +98,7 @@ def add_student_save(request):
             user.student.session_end_year = timezone.make_aware(end_datetime_naive)
 
             user.student.gender = sex
-            user.student.profile_picture = ""
+            user.student.profile_picture = profile_picture_url
             user.save()
             messages.success(request, "Successfully Added Student")
             return HttpResponseRedirect("/add_student")
@@ -110,7 +117,7 @@ def add_subject_save(request):
     if request.method != "POST":
         return HttpResponse("<h2>Method Not Allowed</h2>")
     else:
-        subject_name = request.POST.get("subject")
+        subject_name = request.POST.get("subject_name")
         course_id = request.POST.get("course")
         course = Courses.objects.get(id=course_id)
         staff_id = request.POST.get("staff")
@@ -202,6 +209,14 @@ def edit_student_save(request):
         course_id = request.POST.get("course")
         sex = request.POST.get("sex")
 
+        if request.FILES['profile_picture']:
+            profile_picture = request.FILES.get("profile_picture")
+            fileStorage = FileSystemStorage()
+            filename = fileStorage.save(profile_picture.name, profile_picture)
+            profile_picture_url = fileStorage.url(filename)
+        else:
+            profile_picture_url = None
+
         try:
             user = CustomUser.objects.get(id=student_id)
             user.first_name = first_name
@@ -218,6 +233,9 @@ def edit_student_save(request):
 
             course = Courses.objects.get(id=course_id)
             student.course_id = course
+            if profile_picture_url != None:
+                student.profile_picture = profile_picture_url
+
             student.save()
 
             messages.success(request, "Successfully Edited Student")
@@ -225,3 +243,59 @@ def edit_student_save(request):
         except Exception as e:
             messages.error(request, f"Failed to Edit Student: {e}")
             return HttpResponseRedirect(f"/edit_student/{student_id}")
+
+
+def edit_subject(request, subject_id):
+    subject = Subject.objects.get(id=subject_id)
+    courses = Courses.objects.all()
+    staffs = CustomUser.objects.filter(user_type=2)
+    return render(request, "hod_template/edit_subject_template.html",
+                  {"subject": subject, "staffs": staffs, "courses": courses})
+
+
+def edit_subject_save(request):
+    if request.method != "POST":
+        return HttpResponse("<h2>Method Not Allowed</h2>")
+    else:
+        subject_id = request.POST.get("subject_id")
+        subject_name = request.POST.get("subject_name")
+        staff_id = request.POST.get("staff")
+        course_id = request.POST.get("course")
+
+        try:
+            subject = Subject.objects.get(id=subject_id)
+            subject.subject_name = subject_name
+            staff = CustomUser.objects.get(id=staff_id)
+            subject.staff_id = staff
+            course = Courses.objects.get(id=course_id)
+            subject.course_id = course
+            subject.save()
+
+            messages.success(request, "Successfully Edited Subject")
+            return HttpResponseRedirect(f"/edit_subject/{subject_id}")
+        except Exception as e:
+            messages.error(request, f"Failed to Edit Subject: {e}")
+            return HttpResponseRedirect(f"/edit_subject/{subject_id}")
+
+
+def edit_course(request, course_id):
+    course = Courses.objects.get(id=course_id)
+    return render(request, "hod_template/edit_course_template.html", {"course": course})
+
+
+def edit_course_save(request):
+    if request.method != "POST":
+        return HttpResponse("<h2>Method Not Allowed</h2>")
+    else:
+        course_id = request.POST.get("course_id")
+        course_name = request.POST.get("course")
+
+        try:
+            course = Courses.objects.get(id=course_id)
+            course.course_name = course_name
+            course.save()
+            messages.success(request, "Successfully Edited Course")
+            return HttpResponseRedirect(f"/edit_course/{course_id}")
+        except Exception as e:
+            messages.error(request, f"Failed to Edit Course: {e}")
+            return HttpResponseRedirect(f"/edit_course/{course_id}")
