@@ -18,11 +18,11 @@
                         {% csrf_token %}
                         <!--begin::Body-->
                         <div class="card-body">
-                            <div class="mb-3">
+                            <div class="form-group">
                                 <label class="form-label">Subject Name</label>
                                 <input type="text" class="form-control" name="subject" placeholder="Enter Subject">
                             </div>
-                            <div class="mb-3">
+                            <div class="form-group">
                                 <label class="form-label">Course</label>
                                 <select class="form-control" name="course">
                                     {% for course in courses %}
@@ -30,7 +30,7 @@
                                     {% endfor %}
                                 </select>
                             </div>
-                            <div class="mb-3">
+                            <div class="form-group">
                                 <label class="form-label">Staff</label>
                                 <select class="form-control" name="staff">
                                     {% for staff in staffs %}
