@@ -1,11 +1,10 @@
-from datetime import datetime
-
 from django.contrib import messages
 from django.core.files.storage import FileSystemStorage
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
-from django.utils import timezone
+from django.urls import reverse
 
+from student_management_app.forms import AddStudentForm, EditStudentForm
 from student_management_app.models import CustomUser, Courses, Staff, Subject, Student
 
 
@@ -33,10 +32,10 @@ def add_staff_save(request):
             user.staff.address = address
             user.save()
             messages.success(request, "Successfully Added Staff")
-            return HttpResponseRedirect("/add_staff")
+            return HttpResponseRedirect(reverse("add_staff"))
         except Exception as e:
             messages.error(request, f"Failed to Add Staff: {e}")
-            return HttpResponseRedirect("/add_staff")
+            return HttpResponseRedirect(reverse("add_staff"))
 
 
 def add_course(request):
@@ -45,66 +44,66 @@ def add_course(request):
 
 def add_course_save(request):
     if request.method != "POST":
-        return HttpResponseRedirect("Method Not Allowed")
+        return HttpResponse("Method Not Allowed")
     else:
         course = request.POST.get("course")
         try:
             course_model = Courses(course_name=course)
             course_model.save()
             messages.success(request, "Successfully Added Course")
-            return HttpResponseRedirect("/add_course")
+            return HttpResponseRedirect(reverse("add_course"))
         except Exception as e:
             messages.error(request, f"Failed to Add Course: {e}")
-            return HttpResponseRedirect("/add_course")
+            return HttpResponseRedirect(reverse("add_course"))
 
 
 def add_student(request):
-    courses = Courses.objects.all()
-    return render(request, "hod_template/add_student_template.html", {"courses": courses})
+    form = AddStudentForm()
+    return render(request, "hod_template/add_student_template.html", {"form": form})
 
 
 def add_student_save(request):
     if request.method != "POST":
         return HttpResponse("Method Not Allowed")
     else:
-        first_name = request.POST.get("first_name")
-        last_name = request.POST.get("last_name")
-        username = request.POST.get("username")
-        email = request.POST.get("email")
-        password = request.POST.get("password")
-        address = request.POST.get("address")
-        session_start = request.POST.get("session_start")
-        session_end = request.POST.get("session_end")
-        course_id = request.POST.get("course")
-        sex = request.POST.get("sex")
+        form = AddStudentForm(request.POST, request.FILES)
+        if form.is_valid():
+            first_name = form.cleaned_data["first_name"]
+            last_name = form.cleaned_data["last_name"]
+            username = form.cleaned_data["username"]
+            email = form.cleaned_data["email"]
+            password = form.cleaned_data["password"]
+            address = form.cleaned_data["address"]
+            session_start = form.cleaned_data["session_start"]
+            session_end = form.cleaned_data["session_end"]
+            course_id = form.cleaned_data["course"]
+            sex = form.cleaned_data["sex"]
 
-        profile_picture = request.FILES.get("profile_picture")
-        fileStorage = FileSystemStorage()
-        filename = fileStorage.save(profile_picture.name, profile_picture)
-        profile_picture_url = fileStorage.url(filename)
+            profile_picture = request.FILES.get("profile_picture")
+            fileStorage = FileSystemStorage()
+            filename = fileStorage.save(profile_picture.name, profile_picture)
+            profile_picture_url = fileStorage.url(filename)
 
-        try:
-            user = CustomUser.objects.create_user(username=username, password=password, email=email,
-                                                  first_name=first_name, last_name=last_name, user_type=3)
-            user.student.address = address
-            course_obj = Courses.objects.get(id=course_id)
-            user.student.course_id = course_obj
-            # user.student.session_start_year = session_start
-            # user.student.session_end_year = session_end
-
-            start_datetime_naive = datetime.strptime(session_start, '%Y-%m-%d')
-            user.student.session_start_year = timezone.make_aware(start_datetime_naive)
-            end_datetime_naive = datetime.strptime(session_end, '%Y-%m-%d')
-            user.student.session_end_year = timezone.make_aware(end_datetime_naive)
-
-            user.student.gender = sex
-            user.student.profile_picture = profile_picture_url
-            user.save()
-            messages.success(request, "Successfully Added Student")
-            return HttpResponseRedirect("/add_student")
-        except Exception as e:
-            messages.error(request, f"Failed to Add Student: {e}")
-            return HttpResponseRedirect("/add_student")
+            try:
+                user = CustomUser.objects.create_user(username=username, password=password, email=email,
+                                                      first_name=first_name, last_name=last_name, user_type=3)
+                user.student.address = address
+                course_obj = Courses.objects.get(id=course_id)
+                user.student.course_id = course_obj
+                user.student.session_start_year = session_start
+                user.student.session_end_year = session_end
+                user.student.gender = sex
+                user.student.profile_picture = profile_picture_url
+                user.save()
+                messages.success(request, "Successfully Added Student")
+                return HttpResponseRedirect(reverse("add_student"))
+            except Exception as e:
+                messages.error(request, f"Failed to Add Student: {e}")
+                return HttpResponseRedirect(reverse("add_student"))
+        else:
+            form = AddStudentForm(request.POST)
+            messages.error(request, "Please correct the errors below")
+            return render(request, "hod_template/add_student_template.html", {"form": form})
 
 
 def add_subject(request):
@@ -127,10 +126,10 @@ def add_subject_save(request):
             subject = Subject(subject_name=subject_name, course_id=course, staff_id=staff)
             subject.save()
             messages.success(request, "Successfully Added Subject")
-            return HttpResponseRedirect("/add_subject")
+            return HttpResponseRedirect(reverse("add_subject"))
         except Exception as e:
             messages.error(request, f"Failed to Add Subject: {e}")
-            return HttpResponseRedirect("/add_subject")
+            return HttpResponseRedirect(reverse("add_subject"))
 
 
 def manage_staff(request):
@@ -182,68 +181,89 @@ def edit_staff_save(request):
             staff_model.save()
 
             messages.success(request, "Successfully Edited Staff")
-            return HttpResponseRedirect(f"/edit_staff/{staff_id}")
+            return HttpResponseRedirect(reverse("edit_staff", kwargs={"staff_id": staff_id}))
         except Exception as e:
             messages.error(request, f"Failed to Edit Staff: {e}")
-            return HttpResponseRedirect(f"/edit_staff/{staff_id}")
+            return HttpResponseRedirect(reverse("edit_staff", kwargs={"staff_id": staff_id}))
 
 
 def edit_student(request, student_id):
-    courses = Courses.objects.all()
+    request.session['student_id'] = student_id
     student = Student.objects.get(admin=student_id)
+    form = EditStudentForm()
+    form.fields['email'].initial = student.admin.email
+    form.fields['first_name'].initial = student.admin.first_name
+    form.fields['last_name'].initial = student.admin.last_name
+    form.fields['username'].initial = student.admin.username
+    form.fields['address'].initial = student.address
+    form.fields['course'].initial = student.course_id.id
+    form.fields['sex'].initial = student.gender
+    form.fields['session_start'].initial = student.session_start_year
+    form.fields['session_end'].initial = student.session_end_year
     return render(request, "hod_template/edit_student_template.html",
-                  {"student": student, "courses": courses, "id": student_id})
+                  {"form": form, "id": student_id, "username": student.admin.username})
 
 
 def edit_student_save(request):
     if request.method != "POST":
         return HttpResponse("<h2>Method Not Allowed</h2>")
     else:
-        student_id = request.POST.get("student_id")
-        first_name = request.POST.get("first_name")
-        last_name = request.POST.get("last_name")
-        username = request.POST.get("username")
-        email = request.POST.get("email")
-        address = request.POST.get("address")
-        session_start = request.POST.get("session_start")
-        session_end = request.POST.get("session_end")
-        course_id = request.POST.get("course")
-        sex = request.POST.get("sex")
+        student_id = request.session.get("student_id")
+        if student_id == None:
+            return HttpResponseRedirect(reverse("manage_student"))
 
-        if request.FILES.get('profile_picture', False):
-            profile_picture = request.FILES.get("profile_picture")
-            fileStorage = FileSystemStorage()
-            filename = fileStorage.save(profile_picture.name, profile_picture)
-            profile_picture_url = fileStorage.url(filename)
+        form = EditStudentForm(request.POST, request.FILES)
+        if form.is_valid():
+            first_name = form.cleaned_data["first_name"]
+            last_name = form.cleaned_data["last_name"]
+            username = form.cleaned_data["username"]
+            email = form.cleaned_data["email"]
+            address = form.cleaned_data["address"]
+            session_start = form.cleaned_data["session_start"]
+            session_end = form.cleaned_data["session_end"]
+            course_id = form.cleaned_data["course"]
+            sex = form.cleaned_data["sex"]
+
+            if request.FILES.get('profile_picture', False):
+                profile_picture = request.FILES.get("profile_picture")
+                fileStorage = FileSystemStorage()
+                filename = fileStorage.save(profile_picture.name, profile_picture)
+                profile_picture_url = fileStorage.url(filename)
+            else:
+                profile_picture_url = None
+
+            try:
+                user = CustomUser.objects.get(id=student_id)
+                user.first_name = first_name
+                user.last_name = last_name
+                user.username = username
+                user.email = email
+                user.save()
+
+                student = Student.objects.get(admin=student_id)
+                student.address = address
+                student.session_start_year = session_start
+                student.session_end_year = session_end
+                student.gender = sex
+
+                course = Courses.objects.get(id=course_id)
+                student.course_id = course
+                if profile_picture_url != None:
+                    student.profile_picture = profile_picture_url
+
+                student.save()
+                del request.session['student_id']
+
+                messages.success(request, "Successfully Edited Student")
+                return HttpResponseRedirect(reverse("edit_student", kwargs={"student_id": student_id}))
+            except Exception as e:
+                messages.error(request, f"Failed to Edit Student: {e}")
+                return HttpResponseRedirect(reverse("edit_student", kwargs={"student_id": student_id}))
         else:
-            profile_picture_url = None
-
-        try:
-            user = CustomUser.objects.get(id=student_id)
-            user.first_name = first_name
-            user.last_name = last_name
-            user.username = username
-            user.email = email
-            user.save()
-
+            form = EditStudentForm(request.POST)
             student = Student.objects.get(admin=student_id)
-            student.address = address
-            student.session_start_year = session_start
-            student.session_end_year = session_end
-            student.gender = sex
-
-            course = Courses.objects.get(id=course_id)
-            student.course_id = course
-            if profile_picture_url != None:
-                student.profile_picture = profile_picture_url
-
-            student.save()
-
-            messages.success(request, "Successfully Edited Student")
-            return HttpResponseRedirect(f"/edit_student/{student_id}")
-        except Exception as e:
-            messages.error(request, f"Failed to Edit Student: {e}")
-            return HttpResponseRedirect(f"/edit_student/{student_id}")
+            return render(request, "hod_template/edit_student_template.html",
+                          {"form": form, "id": student_id, "username": student.admin.username})
 
 
 def edit_subject(request, subject_id):
@@ -273,10 +293,10 @@ def edit_subject_save(request):
             subject.save()
 
             messages.success(request, "Successfully Edited Subject")
-            return HttpResponseRedirect(f"/edit_subject/{subject_id}")
+            return HttpResponseRedirect(reverse("edit_subject", kwargs={"subject_id": subject_id}))
         except Exception as e:
             messages.error(request, f"Failed to Edit Subject: {e}")
-            return HttpResponseRedirect(f"/edit_subject/{subject_id}")
+            return HttpResponseRedirect(reverse("edit_subject", kwargs={"subject_id": subject_id}))
 
 
 def edit_course(request, course_id):
@@ -296,7 +316,7 @@ def edit_course_save(request):
             course.course_name = course_name
             course.save()
             messages.success(request, "Successfully Edited Course")
-            return HttpResponseRedirect(f"/edit_course/{course_id}")
+            return HttpResponseRedirect(reverse("edit_course", kwargs={"course_id": course_id}))
         except Exception as e:
             messages.error(request, f"Failed to Edit Course: {e}")
-            return HttpResponseRedirect(f"/edit_course/{course_id}")
+            return HttpResponseRedirect("edit_course", kwargs={"course_id": course_id})
