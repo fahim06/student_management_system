@@ -96,7 +96,7 @@
             <!--begin::End Navbar Links-->
             <ul class="navbar-nav ms-auto">
                 <li class="nav-item">
-                    <a class="nav-link" data-weight="control-sidebar" data-sidebar="true" href="/logout_user">
+                    <a class="nav-link" data-weight="control-sidebar" data-sidebar="true" href="{% url 'logout' %}">
                         Logout
                     </a>
                 </li>
@@ -106,7 +106,7 @@
         <!--end::Container-->
     </nav>
     <!--end::Header-->
-    {% include 'hod_template/sidebar_template.html' with user=user %}
+    {% include 'hod_template/sidebar_template.html' with user=user id=id %}
     <!--begin::App Main-->
     <main class="app-main">
         <!--begin::App Content Header-->
@@ -123,7 +123,7 @@
                     </div>
                     <div class="col-sm-6">
                         <ol class="breadcrumb float-sm-end">
-                            <li class="breadcrumb-item"><a href="/admin_home">Home</a></li>
+                            <li class="breadcrumb-item"><a href="{% url 'admin_home' %}">Home</a></li>
                         </ol>
                     </div>
                 </div>
