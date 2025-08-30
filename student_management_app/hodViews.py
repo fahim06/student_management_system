@@ -5,7 +5,7 @@ from django.shortcuts import render
 from django.urls import reverse
 
 from student_management_app.forms import AddStudentForm, EditStudentForm
-from student_management_app.models import CustomUser, Courses, Staff, Subject, Student
+from student_management_app.models import CustomUser, Courses, Staff, Subject, Student, SessionYear
 
 
 def admin_home(request):
@@ -74,8 +74,7 @@ def add_student_save(request):
             email = form.cleaned_data["email"]
             password = form.cleaned_data["password"]
             address = form.cleaned_data["address"]
-            session_start = form.cleaned_data["session_start"]
-            session_end = form.cleaned_data["session_end"]
+            session_year_id = form.cleaned_data["session_year_id"]
             course_id = form.cleaned_data["course"]
             sex = form.cleaned_data["sex"]
 
@@ -90,8 +89,8 @@ def add_student_save(request):
                 user.student.address = address
                 course_obj = Courses.objects.get(id=course_id)
                 user.student.course_id = course_obj
-                user.student.session_start_year = session_start
-                user.student.session_end_year = session_end
+                session_year = SessionYear.objects.get(id=session_year_id)
+                user.student.session_year_id = session_year
                 user.student.gender = sex
                 user.student.profile_picture = profile_picture_url
                 user.save()
@@ -198,8 +197,7 @@ def edit_student(request, student_id):
     form.fields['address'].initial = student.address
     form.fields['course'].initial = student.course_id.id
     form.fields['sex'].initial = student.gender
-    form.fields['session_start'].initial = student.session_start_year
-    form.fields['session_end'].initial = student.session_end_year
+    form.fields['session_year_id'].initial = student.session_year_id.id
     return render(request, "hod_template/edit_student_template.html",
                   {"form": form, "id": student_id, "username": student.admin.username})
 
@@ -219,8 +217,7 @@ def edit_student_save(request):
             username = form.cleaned_data["username"]
             email = form.cleaned_data["email"]
             address = form.cleaned_data["address"]
-            session_start = form.cleaned_data["session_start"]
-            session_end = form.cleaned_data["session_end"]
+            session_year_id = form.cleaned_data["session_year_id"]
             course_id = form.cleaned_data["course"]
             sex = form.cleaned_data["sex"]
 
@@ -242,8 +239,8 @@ def edit_student_save(request):
 
                 student = Student.objects.get(admin=student_id)
                 student.address = address
-                student.session_start_year = session_start
-                student.session_end_year = session_end
+                session_year = SessionYear.objects.get(id=session_year_id)
+                student.session_year_id = session_year
                 student.gender = sex
 
                 course = Courses.objects.get(id=course_id)
@@ -320,3 +317,24 @@ def edit_course_save(request):
         except Exception as e:
             messages.error(request, f"Failed to Edit Course: {e}")
             return HttpResponseRedirect("edit_course", kwargs={"course_id": course_id})
+
+
+def manage_session(request):
+    return render(request, "hod_template/manage_session_template.html")
+
+
+def add_session_save(request):
+    if request.method != "POST":
+        return HttpResponseRedirect(reverse("manage_session"))
+    else:
+        session_start_year = request.POST.get("session_start")
+        session_end_year = request.POST.get("session_end")
+
+        try:
+            session_year = SessionYear(session_start_year=session_start_year, session_end_year=session_end_year)
+            session_year.save()
+            messages.success(request, "Successfully Added Session")
+            return HttpResponseRedirect(reverse("manage_session"))
+        except Exception as e:
+            messages.error(request, f"Failed to Add Session: {e}")
+            return HttpResponseRedirect(reverse("manage_session"))

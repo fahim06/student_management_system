@@ -5,6 +5,13 @@ from django.dispatch import receiver
 
 
 # Create your models here.
+class SessionYear(models.Model):
+    id = models.AutoField(primary_key=True)
+    session_start_year = models.DateField()
+    session_end_year = models.DateField()
+    objects = models.Manager()
+
+
 class CustomUser(AbstractUser):
     user_type_data = ((1, "HOD"), (2, "STAFF"), (3, "STUDENT"))
     user_type = models.CharField(default=1, choices=user_type_data, max_length=10)
@@ -52,8 +59,7 @@ class Student(models.Model):
     profile_picture = models.FileField()
     address = models.TextField()
     course_id = models.ForeignKey(Courses, on_delete=models.DO_NOTHING)
-    session_start_year = models.DateField()
-    session_end_year = models.DateField()
+    session_year_id = models.ForeignKey(SessionYear, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now_add=True)
     objects = models.Manager()
@@ -64,6 +70,7 @@ class Attendance(models.Model):
     subject_id = models.ForeignKey(Subject, on_delete=models.DO_NOTHING)
     attendance_date = models.DateField(auto_now_add=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    session_year_id = models.ForeignKey(SessionYear, on_delete=models.CASCADE)
     updated_at = models.DateTimeField(auto_now_add=True)
     objects = models.Manager()
 
@@ -146,8 +153,9 @@ def create_user_profile(sender, instance, created, **kwargs):
         if instance.user_type == 2:
             Staff.objects.create(admin=instance, address="")
         if instance.user_type == 3:
-            Student.objects.create(admin=instance, course_id=Courses.objects.get(id=1), session_start_year="2025-01-01",
-                                   session_end_year="2026-01-01", address="", profile_picture="", gender="")
+            Student.objects.create(admin=instance, course_id=Courses.objects.get(id=1),
+                                   session_year_id=SessionYear.objects.get(id=1),
+                                   address="", profile_picture="", gender="")
 
 
 @receiver(post_save, sender=CustomUser)

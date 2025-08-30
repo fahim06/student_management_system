@@ -49,6 +49,8 @@ urlpatterns = [
                   path('edit_subject_save', hodViews.edit_subject_save, name="edit_subject_save"),
                   path('edit_course/<str:course_id>', hodViews.edit_course, name="edit_course"),
                   path('edit_course_save', hodViews.edit_course_save, name="edit_course_save"),
+                  path('manage_session', hodViews.manage_session, name="manage_session"),
+                  path('add_session_save', hodViews.add_session_save, name="add_session_save"),
 
                   # Staff URL Paths
                   path('staff_home', staffViews.staff_home, name="staff_home"),

@@ -117,6 +117,16 @@
                     </a>
                 </li>
                 <li class="nav-item">
+                    {% url 'manage_session' as manage_session_url %}
+                    <a href="{{ manage_session_url }}" class="nav-link {% if request.path == manage_session_url %}
+                       active {% endif %}">
+                        <i class="nav-icon bi bi-file-earmark-text"></i>
+                        <p>
+                            Manage Session Year
+                        </p>
+                    </a>
+                </li>
+                <li class="nav-item">
                     {% url 'view_attendance' as view_attendance_url %}
                     <a href="{{ view_attendance_url }}" class="nav-link {% if request.path == view_attendance_url %}
                        active {% endif %}">
