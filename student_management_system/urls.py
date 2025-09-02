@@ -54,6 +54,9 @@ urlpatterns = [
 
                   # Staff URL Paths
                   path('staff_home', staffViews.staff_home, name="staff_home"),
+                  path('staff_take_attendance', staffViews.staff_take_attendance, name="staff_take_attendance"),
+                  path('get_students', staffViews.get_students, name="get_students"),
+                  path('save_attendance_data', staffViews.save_attendance_data, name="save_attendance_data"),
 
                   # Student URL Paths
                   path('student_home', studentViews.student_home, name="student_home"),

@@ -42,6 +42,16 @@
                         </p>
                     </a>
                 </li>
+                <li class="nav-item">
+                    {% url 'staff_take_attendance' as staff_take_attendance_url %}
+                    <a href="{{ staff_take_attendance_url }}" class="nav-link
+                            {% if request.path == staff_take_attendance_url %} active {% endif %}">
+                        <i class="nav-icon bi bi-clipboard-check"></i>
+                        <p>
+                            Take Attendance
+                        </p>
+                    </a>
+                </li>
 
             </ul>
             <!--end::Sidebar Menu-->
