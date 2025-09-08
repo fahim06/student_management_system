@@ -5,7 +5,7 @@
 <!--begin::Head-->
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-    <title>Student Management System</title>
+    <title>Student Management System | Staff Panel</title>
     <!--begin::Accessibility Meta Tags-->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes"/>
     <meta name="color-scheme" content="light dark"/>
@@ -92,7 +92,7 @@
                 </li>
             </ul>
             <!--end::Start Navbar Links-->
-            <h4 style="margin-left: 10px;margin-top: 5px">Student Management System HOD Login</h4>
+            <h4 style="margin-left: 10px;margin-top: 5px">Student Management System | Staff Panel</h4>
             <!--begin::End Navbar Links-->
             <ul class="navbar-nav ms-auto">
                 <li class="nav-item">
@@ -106,7 +106,7 @@
         <!--end::Container-->
     </nav>
     <!--end::Header-->
-    {% include 'hod_template/sidebar_template.html' with user=user id=id %}
+    {% include 'staff_template/sidebar_template.html' with user=user id=id %}
     <!--begin::App Main-->
     <main class="app-main">
         <!--begin::App Content Header-->
@@ -135,7 +135,7 @@
         {% block main_content %}{% endblock main_content %}
     </main>
     <!--end::App Main-->
-    {% include 'hod_template/footer.html' %}
+    {% include 'staff_template/footer.html' %}
 </div>
 <!--end::App Wrapper-->
 <!--begin::Script-->

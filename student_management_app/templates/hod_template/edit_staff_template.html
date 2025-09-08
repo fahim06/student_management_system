@@ -1,6 +1,6 @@
 {% extends 'hod_template/base_template.html' %}
 {% block page_title %}
-    Add Staff
+    Edit Staff | Username : {{ staff.admin.username }} | #ID : {{ staff.admin.id }}
 {% endblock page_title %}
 {% block main_content %}
 
@@ -10,39 +10,40 @@
                 <div class="card card-primary card-outline mb-4">
                     <!--begin::Header-->
                     <div class="card-header">
-                        <div class="card-title">Add Staff</div>
+                        <div class="card-title">Edit Staff</div>
                     </div>
                     <!--end::Header-->
                     <!--begin::Form-->
-                    <form role="form" action="/add_staff_save" method="post">
+                    <form role="form" action="{% url 'edit_staff_save' %}" method="post">
                         {% csrf_token %}
                         <!--begin::Body-->
                         <div class="card-body">
                             <div class="form-group">
                                 <label class="form-label">Email address</label>
-                                <input type="email" class="form-control" name="email" placeholder="Enter email">
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Password</label>
-                                <input type="password" class="form-control" name="password"
-                                       placeholder="Enter password">
+                                <input type="email" class="form-control" name="email" placeholder="Enter email"
+                                       value="{{ staff.admin.email }}">
+                                <input type="hidden" name="staff_id" value="{{ staff.admin.id }}">
                             </div>
                             <div class="form-group">
                                 <label class="form-label">First Name</label>
                                 <input type="text" class="form-control" name="first_name"
-                                       placeholder="Enter first name">
+                                       placeholder="Enter first name" value="{{ staff.admin.first_name }}">
                             </div>
                             <div class="form-group">
                                 <label class="form-label">Last Name</label>
-                                <input type="text" class="form-control" name="last_name" placeholder="Enter last name">
+                                <input type="text" class="form-control" name="last_name" placeholder="Enter last name"
+                                       value="{{ staff.admin.last_name }}">
+                                <input type="hidden" name="staff_id" value="{{ staff.admin.id }}">
                             </div>
                             <div class="form-group">
                                 <label class="form-label">Username</label>
-                                <input type="text" class="form-control" name="username" placeholder="Enter username">
+                                <input type="text" class="form-control" name="username" placeholder="Enter username"
+                                       value="{{ staff.admin.username }}">
                             </div>
                             <div class="form-group">
                                 <label class="form-label">Address</label>
-                                <input type="text" class="form-control" name="address" placeholder="Enter address">
+                                <input type="text" class="form-control" name="address" placeholder="Enter address"
+                                       value="{{ staff.address }}">
                             </div>
                             <div class="form-group>">
                                 {% if messages %}
@@ -62,7 +63,7 @@
                         <!--end::Body-->
                         <!--begin::Footer-->
                         <div class="card-footer">
-                            <button type="submit" class="btn btn-primary w-100">Add Staff</button>
+                            <button type="submit" class="btn btn-primary w-100">Save Changes</button>
                         </div>
                         <!--end::Footer-->
                     </form>

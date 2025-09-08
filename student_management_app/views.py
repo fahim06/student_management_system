@@ -2,6 +2,7 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
+from django.urls import reverse
 
 
 # Create your views here.
@@ -21,8 +22,12 @@ def doLogin(request):
                             password=request.POST.get("password"))
         if user != None:
             login(request, user)
-
-            return HttpResponseRedirect('/admin_home')
+            if user.user_type == "1":
+                return HttpResponseRedirect(reverse("admin_home"))
+            elif user.user_type == "2":
+                return HttpResponseRedirect(reverse("staff_home"))
+            elif user.user_type == "3":
+                return HttpResponseRedirect(reverse("student_home"))
 
         else:
             messages.error(request, "Invalid Login Details")

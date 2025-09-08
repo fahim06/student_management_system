@@ -1,0 +1,25 @@
+{% extends 'hod_template/base_template.html' %}
+{% block page_title %}
+    Add Student
+{% endblock page_title %}
+{% block main_content %}
+
+    <section class="content">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="card card-primary card-outline mb-4">
+                    <!--begin::Header-->
+                    <div class="card-header">
+                        <div class="card-title">Add Student</div>
+                    </div>
+                    <!--end::Header-->
+                    <!--begin::Form-->
+                    {% url 'add_student_save' as action_path %}
+                    {% include 'hod_template/form_template.html' with messages=messages form=form action_path=action_path button_text="Add Student" %}
+                    <!--end::Form-->
+                </div>
+            </div>
+        </div>
+    </section>
+
+{% endblock main_content %}
