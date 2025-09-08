@@ -1,0 +1,52 @@
+{% extends 'student_template/base_template.html' %}
+{% block page_title %}
+    Attendance Report
+{% endblock page_title %}
+
+{% block main_content %}
+
+    <section class="content">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="card card-primary card-outline mb-4">
+                    <!--begin::Header-->
+                    <div class="card-header">
+                        <h3 class="card-title">Detailed Report</h3>
+                    </div>
+                    <div class="card-body">
+                        {% if attendance_reports %}
+                            <div class="row">
+                                {% for report in attendance_reports %}
+                                    <div class="col-md-4 col-lg-3 mb-4">
+                                        <div class="card h-100 text-center shadow-sm">
+                                            <div class="card-body d-flex flex-column justify-content-center">
+                                                {% if report.status %}
+                                                    <i class="bi bi-check-circle-fill text-success"
+                                                       style="font-size: 2.5rem;"></i>
+                                                    <h5 class="card-title mt-3">{{ report.attendance_id.attendance_date|date:"F d, Y" }}</h5>
+                                                    <p class="card-text mt-2"><span class="badge bg-success fs-6">Present</span>
+                                                    </p>
+                                                {% else %}
+                                                    <i class="bi bi-x-circle-fill text-danger"
+                                                       style="font-size: 2.5rem;"></i>
+                                                    <h5 class="card-title mt-3">{{ report.attendance_id.attendance_date|date:"F d, Y" }}</h5>
+                                                    <p class="card-text mt-2"><span
+                                                            class="badge bg-danger fs-6">Absent</span></p>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="alert alert-info text-center">
+                                No attendance records found for the selected period.
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+{% endblock main_content %}
