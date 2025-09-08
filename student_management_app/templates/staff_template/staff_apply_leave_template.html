@@ -1,0 +1,94 @@
+{% extends 'staff_template/base_template.html' %}
+{% block page_title %}
+    Leave Report and Apply
+{% endblock page_title %}
+{% block main_content %}
+
+    <section class="content">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="card card-primary card-outline mb-4">
+                    <!--begin::Header-->
+                    <div class="card-header">
+                        <div class="card-title">Apply for Leave</div>
+                    </div>
+                    <!--end::Header-->
+                    <!--begin::Form-->
+
+                    <!--begin::Body-->
+                    <form action="{% url 'staff_apply_leave_save' %}" method="POST" id="leave_form">
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label class="form-label">Leave Date</label>
+                                {% csrf_token %}
+                                <input type="date" name="leave_date" class="form-control" placeholder="Leave Date"
+                                       id="leave_date">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Leave Reason</label>
+                                <textarea class="form-control" rows="6" name="leave_message"
+                                          id="leave_reason"></textarea>
+                            </div>
+                            <div class=" form-group>">
+                                {% if messages %}
+                                    {% for message in messages %}
+                                        {% if message.tags == 'error' %}
+                                            <div class="alert alert-danger"
+                                                 style="margin-top: 10px;text-align: center ">{{ message }}</div>
+                                        {% endif %}
+                                        {% if message.tags == 'success' %}
+                                            <div class="alert alert-success"
+                                                 style="margin-top: 10px;text-align: center ">{{ message }}</div>
+                                        {% endif %}
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+                        </div>
+                        <!--end::Body-->
+                        <!--begin::Footer-->
+                        <div class="card-footer">
+                            <button type="submit" class="btn btn-primary w-100" id="fetch_student">Apply for Leave
+                            </button>
+                        </div>
+                    </form>
+                    <!--end::Footer-->
+                    <!--end::Form-->
+                </div>
+
+                <div class="card card-primary card-outline mb-4">
+                    <!--begin::Header-->
+                    <div class="card-header">
+                        <div class="card-title">Leave Apply History</div>
+                    </div>
+                    <div class="table">
+                        <table class="table">
+                            <tr>
+                                <th>ID</th>
+                                <th>Leave Date</th>
+                                <th>Leave Message</th>
+                                <th>Leave Status</th>
+                            </tr>
+                            {% for row in leave_data %}
+                                <tr>
+                                    <td>{{ row.id }}</td>
+                                    <td>{{ row.leave_date }}</td>
+                                    <td>{{ row.leave_message }}</td>
+                                    <td>
+                                        {% if row.leave_status == 1 %}
+                                            <span class="badge bg-success">Approved</span>
+                                        {% elif row.leave_status == 2 %}
+                                            <span class="badge bg-danger">Rejected</span>
+                                        {% else %}
+                                            <span class="badge bg-info">Pending</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+{% endblock main_content %}

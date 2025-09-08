@@ -62,6 +62,26 @@
                         </p>
                     </a>
                 </li>
+                <li class="nav-item">
+                    {% url 'staff_feedback' as staff_feedback_url %}
+                    <a href="{{ staff_feedback_url }}" class="nav-link
+                            {% if request.path == staff_feedback_url %} active {% endif %}">
+                        <i class="nav-icon bi bi-clipboard-check"></i>
+                        <p>
+                            FeedBack
+                        </p>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    {% url 'staff_apply_leave' as staff_apply_leave_url %}
+                    <a href="{{ staff_apply_leave_url }}" class="nav-link
+                            {% if request.path == staff_apply_leave_url %} active {% endif %}">
+                        <i class="nav-icon bi bi-clipboard-check"></i>
+                        <p>
+                            Apply Leave
+                        </p>
+                    </a>
+                </li>
 
             </ul>
             <!--end::Sidebar Menu-->

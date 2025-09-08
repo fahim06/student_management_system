@@ -62,6 +62,10 @@ urlpatterns = [
                   path('save_attendance_data', staffViews.save_attendance_data, name="save_attendance_data"),
                   path('save_update_attendance_data', staffViews.save_update_attendance_data,
                        name="save_update_attendance_data"),
+                  path('staff_apply_leave', staffViews.staff_apply_leave, name="staff_apply_leave"),
+                  path('staff_apply_leave_save', staffViews.staff_apply_leave_save, name="staff_apply_leave_save"),
+                  path('staff_feedback', staffViews.staff_feedback, name="staff_feedback"),
+                  path('staff_feedback_save', staffViews.staff_feedback_save, name="staff_feedback_save"),
 
                   # Student URL Paths
                   path('student_home', studentViews.student_home, name="student_home"),
