@@ -73,6 +73,11 @@ urlpatterns = [
                   path('student_view_attendance', studentViews.student_view_attendance, name="student_view_attendance"),
                   path('student_view_attendance_post', studentViews.student_view_attendance_post,
                        name="student_view_attendance_post"),
+                  path('student_apply_leave', studentViews.student_apply_leave, name="student_apply_leave"),
+                  path('student_apply_leave_save', studentViews.student_apply_leave_save,
+                       name="student_apply_leave_save"),
+                  path('student_feedback', studentViews.student_feedback, name="student_feedback"),
+                  path('student_feedback_save', studentViews.student_feedback_save, name="student_feedback_save"),
 
               ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) + static(settings.STATIC_URL,
                                                                                          document_root=settings.STATIC_ROOT)
