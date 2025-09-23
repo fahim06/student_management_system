@@ -1,0 +1,59 @@
+{% extends 'hod_template/base_template.html' %}
+{% block page_title %}
+    Staff apply for leave
+{% endblock page_title %}
+{% block main_content %}
+
+    <section class="content">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="card card-primary card-outline mb-4">
+                    <!--begin::Header-->
+                    <div class="card-header">
+                        <div class="card-title">Staff apply for leave</div>
+                    </div>
+                    <!--end::Header-->
+                    <div class="table">
+                        <table class="table">
+                            <tr>
+                                <th>ID</th>
+                                <th>Staff ID</th>
+                                <th>Staff Name</th>
+                                <th>Leave Date</th>
+                                <th>Leave Message</th>
+                                <th>Apply On</th>
+                                <th>Action</th>
+                            </tr>
+                            {% for leave in leaves %}
+                                <tr>
+                                    <td>{{ leave.id }}</td>
+                                    <td>{{ leave.staff_id.admin.id }}</td>
+                                    <td>{{ leave.staff_id.admin.first_name }} {{ leave.staff_id.admin.last_name }}</td>
+                                    <td>{{ leave.leave_date }}</td>
+                                    <td>{{ leave.leave_message }}</td>
+                                    <td>{{ leave.created_at }}</td>
+                                    <td>
+                                        {% if leave.leave_status == 0 %}
+                                            <a href="{% url 'staff_approve_leave' leave_id=leave.id %}"
+                                               class="btn btn-success">Approve</a>
+                                            <a class="btn btn-danger"
+                                               href="{% url 'staff_disapprove_leave' leave_id=leave.id %}">Disapprove</a>
+                                        {% elif leave.leave_status == 1 %}
+                                            <button class="btn btn-warning" disabled="disabled">Approved
+                                            </button>
+                                        {% else %}
+                                            <button class="btn btn-danger" disabled="disabled">Disapproved
+                                            </button>
+                                        {% endif %}
+                                    </td>
+
+                                </tr>
+                            {% endfor %}
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+{% endblock main_content %}

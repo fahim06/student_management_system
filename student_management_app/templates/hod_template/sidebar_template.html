@@ -158,24 +158,22 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    {% url 'student_leave' as student_leave_url %}
+                    {% url 'student_leave_view' as student_leave_url %}
                     <a href="{{ student_leave_url }}" class="nav-link {% if request.path == student_leave_url %}
                        active {% endif %}">
                         <i class="nav-icon bi bi-person-walking"></i>
                         <p>
                             Student Leave
-                            <span class="float-end nav-badge bg-danger">New</span>
                         </p>
                     </a>
                 </li>
                 <li class="nav-item">
-                    {% url 'staff_leave' as staff_leave_url %}
+                    {% url 'staff_leave_view' as staff_leave_url %}
                     <a href="{{ staff_leave_url }}" class="nav-link {% if request.path == staff_leave_url %}
                        active {% endif %}">
                         <i class="nav-icon bi bi-person-walking"></i>
                         <p>
                             Staff Leave
-                            <span class="float-end nav-badge bg-danger">New</span>
                         </p>
                     </a>
                 </li>
