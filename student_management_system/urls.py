@@ -52,6 +52,8 @@ urlpatterns = [
                   path('edit_course_save', hodViews.edit_course_save, name="edit_course_save"),
                   path('manage_session', hodViews.manage_session, name="manage_session"),
                   path('add_session_save', hodViews.add_session_save, name="add_session_save"),
+                  path('check_email_exist', hodViews.check_email_exist, name="check_email_exist"),
+                  path('check_username_exist', hodViews.check_username_exist, name="check_username_exist"),
 
                   # Staff URL Paths
                   path('staff_home', staffViews.staff_home, name="staff_home"),
