@@ -70,6 +70,11 @@ urlpatterns = [
                        name="staff_approve_leave"),
                   path('staff_disapprove_leave/<str:leave_id>', hodViews.staff_disapprove_leave,
                        name="staff_disapprove_leave"),
+                  path('admin_view_attendance', hodViews.admin_view_attendance, name="admin_view_attendance"),
+                  path('admin_get_attendance_dates', hodViews.admin_get_attendance_dates,
+                       name="admin_get_attendance_dates"),
+                  path('admin_get_student_attendance', hodViews.admin_get_student_attendance,
+                       name="admin_get_student_attendance"),
 
                   # Staff URL Paths
                   path('staff_home', staffViews.staff_home, name="staff_home"),

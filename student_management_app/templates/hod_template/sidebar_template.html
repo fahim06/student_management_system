@@ -127,13 +127,12 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    {% url 'view_attendance' as view_attendance_url %}
+                    {% url 'admin_view_attendance' as view_attendance_url %}
                     <a href="{{ view_attendance_url }}" class="nav-link {% if request.path == view_attendance_url %}
                        active {% endif %}">
                         <i class="nav-icon bi bi-clipboard-check"></i>
                         <p>
                             View attendance
-                            <span class="float-end nav-badge bg-danger">New</span>
                         </p>
                     </a>
                 </li>
