@@ -477,3 +477,36 @@ def admin_get_student_attendance(request):
                       "status": student.status}
         list_data.append(data_small)
     return JsonResponse(json.dumps(list_data), content_type="application/json", safe=False)
+
+
+def admin_profile(request):
+    user = CustomUser.objects.get(id=request.user.id)
+    return render(request, "hod_template/admin_profile_template.html", {"user": user})
+
+
+def admin_profile_save(request):
+    if request.method != "POST":
+        return HttpResponseRedirect(reverse("admin_profile"))
+    else:
+        first_name = request.POST.get("first_name")
+        last_name = request.POST.get("last_name")
+        password = request.POST.get("password")
+        profile_picture = request.FILES.get("profile_picture")
+        fileStorage = FileSystemStorage()
+        filename = fileStorage.save(profile_picture.name, profile_picture)
+        profile_picture_url = fileStorage.url(filename)
+
+        try:
+            customuser = CustomUser.objects.get(id=request.user.id)
+            customuser.first_name = first_name
+            customuser.last_name = last_name
+            customuser.student.profile_picture = profile_picture_url
+
+            if password != None and password != "":
+                customuser.set_password(password)
+            customuser.save()
+            messages.success(request, "Successfully Edited Profile")
+            return HttpResponseRedirect(reverse("admin_profile"))
+        except Exception as e:
+            messages.error(request, f"Failed to Edit Profile: {e}")
+            return HttpResponseRedirect(reverse("admin_profile"))

@@ -75,6 +75,8 @@ urlpatterns = [
                        name="admin_get_attendance_dates"),
                   path('admin_get_student_attendance', hodViews.admin_get_student_attendance,
                        name="admin_get_student_attendance"),
+                  path('admin_profile', hodViews.admin_profile, name="admin_profile"),
+                  path('admin_profile_save', hodViews.admin_profile_save, name="admin_profile_save"),
 
                   # Staff URL Paths
                   path('staff_home', staffViews.staff_home, name="staff_home"),
@@ -90,6 +92,8 @@ urlpatterns = [
                   path('staff_apply_leave_save', staffViews.staff_apply_leave_save, name="staff_apply_leave_save"),
                   path('staff_feedback', staffViews.staff_feedback, name="staff_feedback"),
                   path('staff_feedback_save', staffViews.staff_feedback_save, name="staff_feedback_save"),
+                  path('staff_profile', staffViews.staff_profile, name="staff_profile"),
+                  path('staff_profile_save', staffViews.staff_profile_save, name="staff_profile_save"),
 
                   # Student URL Paths
                   path('student_home', studentViews.student_home, name="student_home"),
@@ -101,6 +105,8 @@ urlpatterns = [
                        name="student_apply_leave_save"),
                   path('student_feedback', studentViews.student_feedback, name="student_feedback"),
                   path('student_feedback_save', studentViews.student_feedback_save, name="student_feedback_save"),
+                  path('student_profile', studentViews.student_profile, name="student_profile"),
+                  path('student_profile_save', studentViews.student_profile_save, name="student_profile_save"),
 
               ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) + static(settings.STATIC_URL,
                                                                                          document_root=settings.STATIC_ROOT)
