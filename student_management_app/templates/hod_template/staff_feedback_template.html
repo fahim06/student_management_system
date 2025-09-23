@@ -1,0 +1,187 @@
+{% extends 'hod_template/base_template.html' %}
+{% block page_title %}
+    Staff Feedback
+{% endblock page_title %}
+{% block main_content %}
+    <!-- Main content -->
+    <section class="content">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="card card-primary">
+                        <div class="card-header">
+                            <h3 class="card-title">Staff Feedback</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                {% for feedback in feedbacks %}
+                                    <div class="col-lg-4 col-md-6">
+                                        <div class="card shadow-sm mb-4 border-light-subtle">
+                                            <div class="card-body">
+                                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                                    <div>
+                                                        <h5 class="card-title mb-0">{{ feedback.staff_id.admin.first_name }} {{ feedback.staff_id.admin.last_name }}</h5>
+                                                        &nbsp;
+                                                        <small class="text-muted">Staff
+                                                            ID: {{ feedback.staff_id.admin.id }}</small>
+                                                    </div>
+                                                    <small class="text-muted text-nowrap">{{ feedback.created_at|date:"d M, Y" }}</small>
+                                                </div>
+
+                                                <blockquote
+                                                        class="blockquote border-start border-4 border-secondary-subtle ps-3 mb-3">
+                                                    <p class="mb-0 fst-italic">"{{ feedback.feedback }}"</p>
+                                                </blockquote>
+
+                                                <div class="card-footer bg-transparent px-0 pt-3 text-end border-top"
+                                                     id="feedback-footer-{{ feedback.id }}">
+                                                    {% if not feedback.feedback_reply %}
+                                                        <button class="btn btn-primary btn-sm reply-btn"
+                                                                data-bs-toggle="modal"
+                                                                data-bs-target="#reply_modal"
+                                                                data-feedback-id="{{ feedback.id }}"
+                                                                data-staff-name="{{ feedback.staff_id.admin.first_name }} {{ feedback.staff_id.admin.last_name }}">
+                                                            <i class="fas fa-reply"></i> Reply
+                                                        </button>
+                                                    {% else %}
+                                                        <p class="text-muted mb-0 text-start">
+                                                            <strong class="text-success"><i
+                                                                    class="fas fa-check-circle"></i> Your
+                                                                Reply:</strong>
+                                                            <span class="fst-italic d-block pt-1 ps-3">"{{ feedback.feedback_reply }}"</span>
+                                                        </p>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+    </section>
+    <!-- Modal -->
+    <div class="modal fade" id="reply_modal" tabindex="-1" aria-labelledby="replyModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="replyModalLabel">Reply to <span id="reply_name"></span></h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                            aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="reply_id" name="reply_id">
+                    <div class="form-group">
+                        <label for="reply_message" class="form-label">Your Reply</label>
+                        <textarea class="form-control" id="reply_message" rows="5"
+                                  placeholder="Type your reply here..."></textarea>
+                    </div>
+                    <div id="modal-feedback" class="mt-2"></div>
+                </div>
+                <div class="modal-footer">
+                    <div id="modal-feedback"></div>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="reply_btn">Send Reply</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+    <!-- /.content -->
+{% endblock main_content %}
+{% block custom_js %}
+    <script>
+        $(document).ready(function () {
+            // Function to get CSRF token from cookies for secure POST requests
+            function getCookie(name) {
+                let cookieValue = null;
+                if (document.cookie && document.cookie !== '') {
+                    const cookies = document.cookie.split(';');
+                    for (let i = 0; i < cookies.length; i++) {
+                        const cookie = cookies[i].trim();
+                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
+                    }
+                }
+                return cookieValue;
+            }
+
+            const csrftoken = getCookie('csrftoken');
+
+            // When a reply button is clicked, set the data in the modal
+            $('#reply_modal').on('show.bs.modal', function (event) {
+                var button = $(event.relatedTarget); // Button that triggered the modal
+                var feedbackId = $(this).data('feedback-id');
+                var staffName = $(this).data('staff-name');
+                var feedbackId = button.data('feedback-id');
+                var staffName = button.data('staff-name');
+
+                $('#reply_id').val(feedbackId);
+                $('#reply_name').text(staffName);
+            });
+
+            // Reset modal state on close
+            $('#reply_modal').on('hidden.bs.modal', function () {
+                $('#reply_message').val('');
+                $('#modal-feedback').html('');
+                $('#reply_btn').removeAttr("disabled").text("Send Reply");
+            });
+
+            $('#reply_btn').on("click", function () {
+                var replyBtn = $(this);
+                replyBtn.attr("disabled", "disabled").html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Sending...');
+
+                var id = $("#reply_id").val();
+                var message = $("#reply_message").val().trim();
+                var modalFeedback = $('#modal-feedback');
+
+                if (!message) {
+                    modalFeedback.html('<div class="alert alert-danger">Please enter a reply message.</div>');
+                    replyBtn.removeAttr("disabled").text("Send Reply");
+                    return;
+                }
+
+                $.ajax({
+                    url: '{% url 'staff_feedback_message_replied' %}',
+                    type: 'POST',
+                    headers: {'X-CSRFToken': csrftoken},
+                    data: {id: id, message: message}
+                })
+                    .done(function (response) {
+                        if (response == "True") {
+                            // Update the UI dynamically without reloading
+                            var footer = $('#feedback-footer-' + id);
+                            var newHtml = `
+                                <p class="text-muted mb-0 text-start fade-in">
+                                    <strong class="text-success"><i class="fas fa-check-circle"></i> Your Reply:</strong>
+                                    <span class="fst-italic d-block pt-1 ps-3">"${message}"</span>
+                                </p>`;
+                            footer.html(newHtml);
+
+                            modalFeedback.html('<div class="alert alert-success">Reply sent successfully!</div>');
+                            // Hide modal after a short delay
+                            setTimeout(function () {
+                                $('#reply_modal').modal('hide');
+                            }, 1500);
+                        } else {
+                            alert("Error in Sending Reply")
+                        }
+                    })
+                    .fail(function () {
+                        alert("Error in Sending Reply")
+                    })
+                    .always(function () {
+                        // Re-enable the button
+                        replyBtn.removeAttr("disabled").text("Send Reply");
+                    });
+            });
+
+        });
+    </script>
+{% endblock custom_js %}

@@ -138,24 +138,22 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    {% url 'student_feedback' as student_feedback_url %}
+                    {% url 'student_feedback_message' as student_feedback_url %}
                     <a href="{{ student_feedback_url }}" class="nav-link {% if request.path == student_feedback_url %}
                        active {% endif %}">
                         <i class="nav-icon bi bi-chat-left-dots-fill"></i>
                         <p>
                             Student Feedback
-                            <span class="float-end nav-badge bg-danger">New</span>
                         </p>
                     </a>
                 </li>
                 <li class="nav-item">
-                    {% url 'staff_feedback' as staff_feedback_url %}
+                    {% url 'staff_feedback_message' as staff_feedback_url %}
                     <a href="{{ staff_feedback_url }}" class="nav-link {% if request.path == staff_feedback_url %}
                        active {% endif %}">
                         <i class="nav-icon bi bi-chat-right-dots-fill"></i>
                         <p>
                             Staff Feedback
-                            <span class="float-end nav-badge bg-danger">New</span>
                         </p>
                     </a>
                 </li>
