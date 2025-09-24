@@ -80,7 +80,7 @@
 <!--begin::App Wrapper-->
 <div class="app-wrapper">
     <!--begin::Header-->
-    <nav class="app-header navbar navbar-expand bg-body">
+    <nav class="app-header navbar navbar-expand bg-success-subtle" data-bs-theme="light">
         <!--begin::Container-->
         <div class="container-fluid">
             <!--begin::Start Navbar Links-->
@@ -96,15 +96,15 @@
                 <!--begin::User Menu Dropdown-->
                 <li class="nav-item dropdown user-menu">
                     <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
-                        <img src="{{ student.profile_picture }}" style="width: 75px"/>
-                        <img src="{% static 'dist/img/user2-160x160.jpg' %}" class="user-image rounded-circle shadow"
+                        {#                        <img src="{{ student.profile_picture }}" style="width: 75px"/>#}
+                        <img src="{{ student.profile_picture }}" class="user-image rounded-circle shadow"
                              alt="User Image">
                         <span class="d-none d-md-inline">{{ user.first_name }} {{ user.last_name }}</span>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-lg dropdown-menu-end">
                         <!--begin::User Image-->
                         <li class="user-header text-bg-primary">
-                            <img src="{% static 'dist/img/user2-160x160.jpg' %}" class="rounded-circle shadow"
+                            <img src="{{ student.profile_picture }}" class="rounded-circle shadow"
                                  alt="User Image">
 
                             <p>
@@ -185,8 +185,10 @@
 <!--begin::OverlayScrollbars Configure-->
 <!--end::Script-->
 
-{% block custom_js %}
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
+{% block custom_js %}
 {% endblock custom_js %}
 
 </body>

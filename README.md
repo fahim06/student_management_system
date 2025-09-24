@@ -89,12 +89,7 @@ Make sure you have the following installed on your system:
       ```
 
 3. **Install dependencies:**
-   Create a file named `requirements.txt` in the root directory with the following content:
-   ```
-   Django>=3.2
-   Pillow>=9.0
-   ```
-   Then, run the installation command:
+   This project uses a `requirements.txt` file to manage its Python packages. Run the following command to install them:
    ```sh
    pip install -r requirements.txt
    ```

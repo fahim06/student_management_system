@@ -184,10 +184,10 @@ def edit_staff_save(request):
             staff_model.save()
 
             messages.success(request, "Successfully Edited Staff")
-            return HttpResponseRedirect(reverse("edit_staff", kwargs={"staff_id": staff_id}))
+            return HttpResponseRedirect(reverse("manage_staff"))
         except Exception as e:
             messages.error(request, f"Failed to Edit Staff: {e}")
-            return HttpResponseRedirect(reverse("edit_staff", kwargs={"staff_id": staff_id}))
+            return HttpResponseRedirect(reverse("manage_staff"))
 
 
 def edit_student(request, student_id):
@@ -256,10 +256,10 @@ def edit_student_save(request):
                 del request.session['student_id']
 
                 messages.success(request, "Successfully Edited Student")
-                return HttpResponseRedirect(reverse("edit_student", kwargs={"student_id": student_id}))
+                return HttpResponseRedirect(reverse("manage_student"))
             except Exception as e:
                 messages.error(request, f"Failed to Edit Student: {e}")
-                return HttpResponseRedirect(reverse("edit_student", kwargs={"student_id": student_id}))
+                return HttpResponseRedirect(reverse("manage_student"))
         else:
             form = EditStudentForm(request.POST)
             student = Student.objects.get(admin=student_id)
@@ -294,10 +294,10 @@ def edit_subject_save(request):
             subject.save()
 
             messages.success(request, "Successfully Edited Subject")
-            return HttpResponseRedirect(reverse("edit_subject", kwargs={"subject_id": subject_id}))
+            return HttpResponseRedirect(reverse("manage_subject"))
         except Exception as e:
             messages.error(request, f"Failed to Edit Subject: {e}")
-            return HttpResponseRedirect(reverse("edit_subject", kwargs={"subject_id": subject_id}))
+            return HttpResponseRedirect(reverse("manage_subject"))
 
 
 def edit_course(request, course_id):
@@ -317,14 +317,15 @@ def edit_course_save(request):
             course.course_name = course_name
             course.save()
             messages.success(request, "Successfully Edited Course")
-            return HttpResponseRedirect(reverse("edit_course", kwargs={"course_id": course_id}))
+            return HttpResponseRedirect(reverse("manage_course"))
         except Exception as e:
             messages.error(request, f"Failed to Edit Course: {e}")
-            return HttpResponseRedirect("edit_course", kwargs={"course_id": course_id})
+            return HttpResponseRedirect(reverse("manage_course"))
 
 
 def manage_session(request):
-    return render(request, "hod_template/manage_session_template.html")
+    sessions = SessionYear.objects.all()
+    return render(request, "hod_template/manage_session_template.html", {"sessions": sessions})
 
 
 def add_session_save(request):
