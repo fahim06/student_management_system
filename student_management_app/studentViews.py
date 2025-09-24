@@ -10,6 +10,9 @@ from student_management_app.models import Subject, Student, CustomUser, Attendan
 
 
 def student_home(request):
+    user = CustomUser.objects.get(id=request.user.id)
+    student = Student.objects.get(admin=user)
+
     student_obj = Student.objects.get(admin=request.user.id)
     attendance_total = AttendanceReport.objects.filter(student_id=student_obj).count()
     attendance_present = AttendanceReport.objects.filter(student_id=student_obj, status=True).count()
@@ -29,20 +32,25 @@ def student_home(request):
         data_present.append(attendance_present_count)
         data_absent.append(attendance_absent_count)
 
-    return render(request, "student_template/student_home_template.html",
-                  {"total_attendance": attendance_total, "absent_attendance": attendance_absent,
-                   "present_attendance": attendance_present, "subjects": subjects, "data1": data_present,
-                   "data2": data_absent, "data_name": subject_name})
+    context = {"total_attendance": attendance_total, "absent_attendance": attendance_absent,
+               "present_attendance": attendance_present, "subjects": subjects, "data1": data_present,
+               "data2": data_absent, "data_name": subject_name, "student": student}
+    return render(request, "student_template/student_home_template.html", context)
 
 
 def student_view_attendance(request):
-    student = Student.objects.get(admin=request.user.id)
-    course = student.course_id
+    user = CustomUser.objects.get(id=request.user.id)
+    student = Student.objects.get(admin=user)
+    student_obj = Student.objects.get(admin=request.user.id)
+    course = student_obj.course_id
     subjects = Subject.objects.filter(course_id=course)
-    return render(request, "student_template/student_view_attendance_template.html", {"subjects": subjects})
+    context = {"subjects": subjects, "student": student}
+    return render(request, "student_template/student_view_attendance_template.html", context)
 
 
 def student_view_attendance_post(request):
+    user = CustomUser.objects.get(id=request.user.id)
+    student = Student.objects.get(admin=user)
     subject_id = request.POST.get('subject')
     start_date = request.POST.get('start_date')
     end_date = request.POST.get('end_date')
@@ -55,14 +63,17 @@ def student_view_attendance_post(request):
     attendance = Attendance.objects.filter(attendance_date__range=(start_date_parse, end_date_parse),
                                            subject_id=subject_obj)
     attendance_reports = AttendanceReport.objects.filter(attendance_id__in=attendance, student_id=student_obj)
-    return render(request, "student_template/student_attendance_data_template.html",
-                  {"attendance_reports": attendance_reports})
+    context = {"attendance_reports": attendance_reports, "student": student}
+    return render(request, "student_template/student_attendance_data_template.html", context)
 
 
 def student_apply_leave(request):
+    user = CustomUser.objects.get(id=request.user.id)
+    student = Student.objects.get(admin=user)
     student_obj = Student.objects.get(admin=request.user.id)
     leave_data = LeaveReportStudent.objects.filter(student_id=student_obj)
-    return render(request, "student_template/student_apply_leave_template.html", {"leave_data": leave_data})
+    context = {"leave_data": leave_data, "student": student}
+    return render(request, "student_template/student_apply_leave_template.html", context)
 
 
 def student_apply_leave_save(request):
@@ -86,9 +97,12 @@ def student_apply_leave_save(request):
 
 
 def student_feedback(request):
+    user = CustomUser.objects.get(id=request.user.id)
+    student = Student.objects.get(admin=user)
     student_id = Student.objects.get(admin=request.user.id)
     feedback_data = FeedBackStudent.objects.filter(student_id=student_id)
-    return render(request, "student_template/student_feedback_template.html", {"feedback_data": feedback_data})
+    context = {"feedback_data": feedback_data, "student": student}
+    return render(request, "student_template/student_feedback_template.html", context)
 
 
 def student_feedback_save(request):
@@ -111,7 +125,8 @@ def student_feedback_save(request):
 def student_profile(request):
     user = CustomUser.objects.get(id=request.user.id)
     student = Student.objects.get(admin=user)
-    return render(request, "student_template/student_profile_template.html", {"user": user, "student": student})
+    context = {"user": user, "student": student}
+    return render(request, "student_template/student_profile_template.html", context)
 
 
 def student_profile_save(request):

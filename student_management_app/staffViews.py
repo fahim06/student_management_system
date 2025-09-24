@@ -2,6 +2,7 @@ import json
 
 from django.contrib import messages
 from django.core import serializers
+from django.db.models import Count, Q
 from django.http import HttpResponse, JsonResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
@@ -12,11 +13,65 @@ from student_management_app.models import Subject, SessionYear, Student, Attenda
 
 
 def staff_home(request):
-    return render(request, "staff_template/staff_home_template.html")
+    """
+    This view gathers all the necessary statistics for the staff dashboard.
+    """
+    # --- Core Data Fetching ---
+    # Get the staff object and all subjects they teach
+    staff_user = Staff.objects.get(admin=request.user)
+    subjects = Subject.objects.filter(staff_id=request.user)
+
+    # --- Dashboard Card Statistics ---
+    subject_count = subjects.count()
+    attendance_count = Attendance.objects.filter(subject_id__in=subjects).count()
+    leave_count = LeaveReportStaff.objects.filter(staff_id=staff_user, leave_status=1).count()
+
+    # Get unique students taught by this staff
+    course_ids = subjects.values_list('course_id', flat=True).distinct()
+    student_count = Student.objects.filter(course_id__in=course_ids).count()
+
+    # --- "Attend Subject" Bar Chart Data ---
+    # Get attendance count per subject in a single query
+    subject_attendance = subjects.annotate(attendance_count=Count('attendance')).values_list('subject_name',
+                                                                                             'attendance_count')
+    subject_names = [item[0] for item in subject_attendance]
+    subject_attendance_counts = [item[1] for item in subject_attendance]
+
+    # --- "Student attendance data" Bar Chart Data ---
+    # Get all students in the courses taught by the staff
+    students_in_courses = Student.objects.filter(course_id__in=course_ids).select_related('admin').order_by(
+        'admin__first_name')
+
+    # Get present/absent counts for each student in a single query
+    student_attendance_data = students_in_courses.annotate(
+        present_count=Count('attendancereport', filter=Q(attendancereport__status=True)),
+        absent_count=Count('attendancereport', filter=Q(attendancereport__status=False))
+    ).values('admin__username', 'present_count', 'absent_count')
+
+    student_names_list = [item['admin__username'] for item in student_attendance_data]
+    present_counts_list = [item['present_count'] for item in student_attendance_data]
+    absent_counts_list = [item['absent_count'] for item in student_attendance_data]
+
+    # --- Prepare Context for Template ---
+    context = {
+        # Card stats
+        "student_count": student_count,
+        "attendance_count": attendance_count,
+        "leave_count": leave_count,
+        "subject_count": subject_count,
+        # "Attend Subject" chart
+        "data1": subject_attendance_counts,
+        "data_name": subject_names,
+        # "Student attendance data" chart
+        "student_list": student_names_list,
+        "present_list": present_counts_list,
+        "absent_list": absent_counts_list,
+    }
+    return render(request, "staff_template/staff_home_template.html", context)
 
 
 def staff_take_attendance(request):
-    subjects = Subject.objects.filter(staff_id=request.user.id)
+    subjects = Subject.objects.filter(staff_id=request.user)
     session_years = SessionYear.objects.all()
     return render(request, "staff_template/staff_take_attendance_template.html",
                   {"subjects": subjects, "session_years": session_years})
@@ -66,7 +121,7 @@ def save_attendance_data(request):
 
 
 def staff_update_attendance(request):
-    subjects = Subject.objects.filter(staff_id=request.user.id)
+    subjects = Subject.objects.filter(staff_id=request.user)
     session_year_id = SessionYear.objects.all()
     return render(request, "staff_template/staff_update_attendance_template.html",
                   {"subjects": subjects, "session_year_id": session_year_id})
@@ -125,7 +180,7 @@ def save_update_attendance_data(request):
 
 
 def staff_apply_leave(request):
-    staff_obj = Staff.objects.get(id=request.user.id)
+    staff_obj = Staff.objects.get(admin=request.user)
     leave_data = LeaveReportStaff.objects.filter(staff_id=staff_obj)
     return render(request, "staff_template/staff_apply_leave_template.html", {"leave_data": leave_data})
 
@@ -137,7 +192,7 @@ def staff_apply_leave_save(request):
         leave_date = request.POST.get("leave_date")
         leave_message = request.POST.get("leave_message")
 
-        staff_obj = Staff.objects.get(id=request.user.id)
+        staff_obj = Staff.objects.get(admin=request.user)
         try:
             leave_report = LeaveReportStaff(staff_id=staff_obj, leave_date=leave_date, leave_message=leave_message,
                                             leave_status=0)
@@ -150,14 +205,14 @@ def staff_apply_leave_save(request):
 
 
 def staff_feedback(request):
-    staff_id = Staff.objects.get(admin=request.user.id)
+    staff_id = Staff.objects.get(admin=request.user)
     feedback_data = FeedBackStaff.objects.filter(staff_id=staff_id)
     return render(request, "staff_template/staff_feedback_template.html", {"feedback_data": feedback_data})
 
 
 def staff_feedback_save(request):
     if request.method != "POST":
-        return HttpResponseRedirect(reverse("staff_feedback_save"))
+        return HttpResponseRedirect(reverse("staff_feedback"))
     else:
         feedback_message = request.POST.get("feedback_message")
 
@@ -200,9 +255,9 @@ def staff_profile_save(request):
                 customuser.set_password(password)
             customuser.save()
 
-            staff = Staff.objects.get(admin=request.user.id)
+            staff = Staff.objects.get(admin=request.user)
             staff.address = address
-            Staff.save()
+            staff.save()
             messages.success(request, "Successfully Edited Profile")
             return HttpResponseRedirect(reverse("staff_profile"))
         except Exception as e:

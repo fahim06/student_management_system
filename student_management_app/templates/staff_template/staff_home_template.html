@@ -4,10 +4,417 @@
 {% endblock page_title %}
 {% block main_content %}
 
-    <section class="content">
-        <div class="container-fluid">
+    {% block custom_css %}
+        <style>
+            .small-box .icon {
+                transition: all 0.3s linear;
+                position: absolute;
+                top: -10px;
+                right: 10px;
+                z-index: 0;
+                font-size: 70px; /* Reduced from 90px for better fit */
+                color: rgba(0, 0, 0, 0.15);
+            }
 
+            .small-box:hover .icon {
+                font-size: 75px; /* Slightly larger on hover */
+            }
+
+            .small-box > .small-box-footer {
+                z-index: 10; /* Ensure the link is clickable above the icon */
+            }
+
+            /* Custom Gradient Backgrounds for Small Boxes */
+            .small-box.bg-gradient-blue {
+                background: linear-gradient(135deg, #6b85f7 0%, #4a65d8 100%);
+                color: #fff;
+            }
+
+            .small-box.bg-gradient-green {
+                background: linear-gradient(135deg, #58b368 0%, #3d8b4d 100%);
+                color: #fff;
+            }
+
+            .small-box.bg-gradient-red {
+                background: linear-gradient(135deg, #e57373 0%, #d32f2f 100%);
+                color: #fff;
+            }
+
+            .small-box.bg-gradient-purple {
+                background: linear-gradient(135deg, #8e67d6 0%, #6a4fa8 100%);
+                color: #fff;
+            }
+        </style>
+    {% endblock custom_css %}
+
+    <main class="app-main" id="main" tabindex="-1">
+        <!--begin::App Content-->
+        <div class="app-content">
+            <!--begin::Container-->
+            <div class="container-fluid">
+                <!--begin::Row-->
+                <div class="row mb-4">
+                    <!--begin::Col-->
+                    <div class="col-lg-3 col-6">
+                        <!--begin::Small Box Widget 1-->
+                        <div class="small-box bg-gradient-blue">
+                            <div class="inner">
+                                <h3>{{ student_count }}</h3>
+                                <p>Student under me</p>
+                            </div>
+                            <div class="icon">
+                                <i class="bi bi-people-fill"></i>
+                            </div>
+                            <a href="{% url 'staff_take_attendance' %}"
+                               class="small-box-footer link-light link-underline-opacity-0 link-underline-opacity-50-hover">
+                                More info <i class="bi bi-link-45deg"></i>
+                            </a>
+                        </div>
+                        <!--end::Small Box Widget 1-->
+                    </div>
+                    <!--end::Col-->
+                    <div class="col-lg-3 col-6">
+                        <!--begin::Small Box Widget 2-->
+                        <div class="small-box bg-gradient-green">
+                            <div class="inner">
+                                <h3>{{ attendance_count }}</h3>
+                                <p>Total attendance taken</p>
+                            </div>
+                            <div class="icon">
+                                <i class="bi bi-clipboard-check-fill"></i>
+                            </div>
+                            <a href="{% url 'staff_take_attendance' %}"
+                               class="small-box-footer link-light link-underline-opacity-0 link-underline-opacity-50-hover">
+                                More info <i class="bi bi-link-45deg"></i>
+                            </a>
+                        </div>
+                        <!--end::Small Box Widget 2-->
+                    </div>
+                    <!--end::Col-->
+                    <div class="col-lg-3 col-6">
+                        <!--begin::Small Box Widget 3-->
+                        <div class="small-box bg-gradient-red">
+                            <div class="inner">
+                                <h3>{{ leave_count }}</h3>
+                                <p>Total leave taken</p>
+                            </div>
+                            <div class="icon">
+                                <i class="bi bi-calendar-event-fill"></i>
+                            </div>
+                            <a href="{% url 'staff_apply_leave' %}"
+                               class="small-box-footer link-dark link-underline-opacity-0 link-underline-opacity-50-hover">
+                                More info <i class="bi bi-link-45deg"></i>
+                            </a>
+                        </div>
+                        <!--end::Small Box Widget 3-->
+                    </div>
+                    <!--end::Col-->
+                    <div class="col-lg-3 col-6">
+                        <!--begin::Small Box Widget 4-->
+                        <div class="small-box bg-gradient-purple">
+                            <div class="inner">
+                                <h3>{{ subject_count }}</h3>
+                                <p> Total Subjects</p>
+                            </div>
+                            <div class="icon">
+                                <i class="bi bi-stack"></i>
+                            </div>
+                            <a href="#"
+                               class="small-box-footer link-light link-underline-opacity-0 link-underline-opacity-50-hover">More
+                                info <i class="bi bi-link-45deg"></i>
+                            </a>
+                        </div>
+                        <!--end::Small Box Widget 4-->
+                    </div>
+                    <!--end::Col-->
+                </div>
+                <!--end::Row-->
+
+                <!-- Charts Row 1 -->
+                <div class="row mb-4">
+                    <!--Pie Chart-->
+                    <div class="col-lg-6">
+                        <div class="card card-primary card-outline">
+                            <div class="card-header">
+                                <h3 class="card-title">Attendance vs Leave Chart</h3>
+                                <div class="card-tools">
+                                    <button type="button" class="btn btn-tool" data-lte-toggle="card-collapse"
+                                            title="Collapse">
+                                        <i data-lte-icon="collapse" class="bi bi-dash-lg"></i>
+                                        <i data-lte-icon="expand" class="bi bi-plus-lg"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-tool" data-lte-toggle="card-remove"
+                                            title="Remove">
+                                        <i class="bi bi-x-lg"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div id="pieChart" style="min-height: 250px;"></div>
+                            </div>
+                            <!-- /.card-body -->
+                        </div>
+                        <!-- /.card -->
+                    </div>
+
+                    <!--Bar Chart-->
+                    <div class="col-lg-6">
+                        <div class="card card-primary card-outline">
+                            <div class="card-header">
+                                <h3 class="card-title">Attend Subject</h3>
+
+                                <div class="card-tools">
+                                    <button type="button" class="btn btn-tool" data-lte-toggle="card-collapse"
+                                            title="Collapse">
+                                        <i data-lte-icon="collapse" class="bi bi-dash-lg"></i>
+                                        <i data-lte-icon="expand" class="bi bi-plus-lg"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-tool" data-lte-toggle="card-remove"
+                                            title="Remove">
+                                        <i class="bi bi-x-lg"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="chart">
+                                    <div id="barChart" style="min-height: 250px;"></div>
+                                </div>
+                            </div>
+                            <!-- /.card-body -->
+                        </div>
+                        <!-- /.card -->
+                    </div>
+                </div>
+                <!-- Charts Row 2 -->
+                <div class="row mb-4">
+                    <!--Pie Chart-->
+                    <div class="col-lg-12">
+                        <div class="card card-primary card-outline">
+                            <div class="card-header">
+                                <h3 class="card-title">Student attendance data</h3>
+                                <div class="card-tools">
+                                    <button type="button" class="btn btn-tool" data-lte-toggle="card-collapse"
+                                            title="Collapse">
+                                        <i data-lte-icon="collapse" class="bi bi-dash-lg"></i>
+                                        <i data-lte-icon="expand" class="bi bi-plus-lg"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-tool" data-lte-toggle="card-remove"
+                                            title="Remove">
+                                        <i class="bi bi-x-lg"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div id="barChart2" style="min-height: 250px;"></div>
+                            </div>
+                            <!-- /.card-body -->
+                        </div>
+                        <!-- /.card -->
+                    </div>
+                </div>
+            </div>
+            <!--end::Container-->
         </div>
-    </section>
+        <!--end::App Content-->
+    </main>
 
 {% endblock main_content %}
+
+{% block custom_js %}
+    <script
+            src="https://cdn.jsdelivr.net/npm/apexcharts@3.37.1/dist/apexcharts.min.js"
+            integrity="sha256-+vh8GkaU7C9/wbSLIcwq82tQ2wTf44aOHA8HlBMwRI8="
+            crossorigin="anonymous">
+
+    </script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            //-------------
+            // - PIE CHART -
+            //-------------
+            // Get data from Django template variables
+            const attendanceCount = {{ attendance_count|default:0 }};
+            const leaveCount = {{ leave_count|default:0 }};
+
+            // If there's no data, don't render the chart
+            if (attendanceCount === 0 && leaveCount === 0) {
+                document.querySelector('#pieChart').innerHTML = '<p class="text-center text-muted">No data to display.</p>';
+                return;
+            }
+
+            const pie_chart_options = {
+                series: [attendanceCount, leaveCount],
+                chart: {
+                    type: 'donut',
+                    height: 250
+                },
+                labels: ['Take Classes', 'On Leave'],
+                colors: ['#58b368', '#e57373'], // Matte Green for Present, Matte Red for Absent
+                plotOptions: {
+                    pie: {
+                        donut: {
+                            labels: {
+                                show: true,
+                                total: {
+                                    show: true,
+                                    label: 'Total Days',
+                                    formatter: function (w) {
+                                        return w.globals.seriesTotals.reduce((a, b) => a + b, 0);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                responsive: [{
+                    breakpoint: 480,
+                    options: {
+                        chart: {
+                            width: 200
+                        },
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }]
+            };
+
+            const pie_chart = new ApexCharts(document.querySelector('#pieChart'), pie_chart_options);
+            pie_chart.render();
+        });
+    </script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            //-------------
+            // - BAR CHART -
+            //-------------
+
+            const bar_chart_options = {
+                series: [{
+                    name: 'Attend class',
+                    data: {{ data1|safe }}
+                }],
+                chart: {
+                    type: 'bar',
+                    height: 250,
+                    stacked: false,
+                    toolbar: {
+                        show: false
+                    }
+                },
+                colors: ['#58b368'], // Green for attendance taken
+                legend: {
+                    position: 'top',
+                    showForSingleSeries: true,
+                },
+                plotOptions: {
+                    bar: {
+                        horizontal: false,
+                        columnWidth: '55%',
+                    },
+                },
+                dataLabels: {
+                    enabled: false
+                },
+                stroke: {
+                    show: true,
+                    width: 2,
+                    colors: ['transparent']
+                },
+                xaxis: {
+                    categories: {{ data_name|safe }},
+                    title: {
+                        text: 'Subjects'
+                    }
+                },
+                yaxis: {
+                    title: {
+                        text: 'No. of Days'
+                    },
+                    labels: {
+                        formatter: function (val) {
+                            return parseInt(val);
+                        }
+                    },
+                },
+                fill: {
+                    opacity: 1
+                },
+            };
+
+            const bar_chart = new ApexCharts(document.querySelector('#barChart'), bar_chart_options);
+            bar_chart.render();
+        });
+    </script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            //-------------
+            // - STUDENT ATTENDANCE BAR CHART -
+            //-------------
+            const studentNames = {{ student_list|safe }};
+
+            if (!studentNames || studentNames.length === 0) {
+                document.querySelector('#barChart2').innerHTML = '<p class="text-center text-muted">No student attendance data to display.</p>';
+                return;
+            }
+
+            const bar_chart_2_options = {
+                series: [{
+                    name: 'Present',
+                    data: {{ present_list|safe }}
+                }, {
+                    name: 'Absent',
+                    data: {{ absent_list|safe }}
+                }],
+                chart: {
+                    type: 'bar',
+                    height: 250,
+                    stacked: false, // Grouped bars
+                    toolbar: {
+                        show: false
+                    }
+                },
+                colors: ['#58b368', '#e57373'], // Green for Present, Red for Absent
+                legend: {
+                    position: 'top',
+                },
+                plotOptions: {
+                    bar: {
+                        horizontal: false,
+                        columnWidth: '60%',
+                    },
+                },
+                dataLabels: {
+                    enabled: false
+                },
+                stroke: {
+                    show: true,
+                    width: 2,
+                    colors: ['transparent']
+                },
+                xaxis: {
+                    categories: studentNames,
+                    title: {
+                        text: 'Students'
+                    }
+                },
+                yaxis: {
+                    title: {
+                        text: 'No. of Days'
+                    },
+                    labels: {
+                        formatter: function (val) {
+                            return parseInt(val);
+                        }
+                    },
+                },
+                fill: {
+                    opacity: 1
+                },
+            };
+
+            const bar_chart_2 = new ApexCharts(document.querySelector('#barChart2'), bar_chart_2_options);
+            bar_chart_2.render();
+        });
+    </script>
+{% endblock custom_js %}
