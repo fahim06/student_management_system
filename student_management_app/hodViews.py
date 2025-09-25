@@ -2,6 +2,7 @@ import json
 
 from django.contrib import messages
 from django.core.files.storage import FileSystemStorage
+from django.db.models import Count, Q
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
@@ -13,7 +14,104 @@ from student_management_app.models import CustomUser, Courses, Staff, Subject, S
 
 
 def admin_home(request):
-    return render(request, 'hod_template/home_content.html')
+    """
+    View for the main admin dashboard. Gathers all necessary data for the
+    summary cards and charts.
+    """
+    # --- 1. Summary Card Statistics ---
+    # Simple counts for the info boxes at the top of the page.
+
+    student_count = Student.objects.all().count()
+    staff_count = Staff.objects.all().count()
+    subject_count = Subject.objects.all().count()
+    course_count = Courses.objects.all().count()
+
+    # --- 2. Data for Charts ---
+
+    # Chart: "Total subject in each course" & "Total student in each course"
+    # A single query to get subject and student counts grouped by course.
+
+    course_data = Courses.objects.annotate(
+        subject_count=Count('subject'),
+        student_count=Count('student')
+    ).values('course_name', 'subject_count', 'student_count')
+
+    # Unpack the data for the template context
+
+    course_name_list = [item['course_name'] for item in course_data]
+    subject_cont_list = [item['subject_count'] for item in course_data]
+    student_count_list_in_course = [item['student_count'] for item in course_data]
+
+    # Chart: "Total Student in Each Subject"
+    # This chart shows the number of students in the *course* that a subject belongs to.
+    # An efficient query to get this data.
+
+    subject_data = Subject.objects.select_related('course_id').annotate(
+        student_count_in_course=Count('course_id__student')
+    ).values('subject_name', 'student_count_in_course')
+
+    subject_list_for_pie_chart = [item['subject_name'] for item in subject_data]
+    student_count_in_subject_for_pie_chart = [item['student_count_in_course'] for item in subject_data]
+
+    # Chart: "Staff Attendance vs. Leave"
+    # Efficiently annotates attendance and leave counts directly onto the Staff queryset.
+
+    staff_attendance_data = Staff.objects.select_related('admin').annotate(
+        attendance_count=Count('admin__subject__attendance'),
+        leave_count=Count('leavereportstaff', filter=Q(leavereportstaff__leave_status=1))
+    ).values('admin__username', 'attendance_count', 'leave_count')
+
+    staff_name_list = [item['admin__username'] for item in staff_attendance_data]
+    attendance_present_list_staff = [item['attendance_count'] for item in staff_attendance_data]
+    attendance_absent_list_staff = [item['leave_count'] for item in staff_attendance_data]
+
+    # Chart: "Student Attendance vs. Leave"
+    # Efficiently annotates attendance and leave counts directly onto the Student queryset.
+
+    student_attendance_data = Student.objects.select_related('admin').annotate(
+        present_count=Count('attendancereport', filter=Q(attendancereport__status=True)),
+        absent_count=Count('attendancereport', filter=Q(attendancereport__status=False)),
+        leave_count=Count('leavereportstudent', filter=Q(leavereportstudent__leave_status=1))
+    ).values('admin__username', 'present_count', 'absent_count', 'leave_count')
+
+    student_name_list = [item['admin__username'] for item in student_attendance_data]
+    attendance_present_list_student = [item['present_count'] for item in student_attendance_data]
+
+    # Total "absences" is a sum of unapproved attendance and approved leaves.
+
+    attendance_absent_list_student = [item['absent_count'] + item['leave_count'] for item in student_attendance_data]
+
+    # --- 3. Prepare Context and Render Template ---
+
+    context = {
+        # --- Data for Summary Cards ---
+        "student_count": student_count,
+        "staff_count": staff_count,
+        "subject_count": subject_count,
+        "course_count": course_count,
+
+        # --- Data for "Total subject in each course" (Chart 2) ---
+        "course_name_list": course_name_list,
+        "subject_cont_list": subject_cont_list,
+
+        # --- Data for "Total student in each course" (Chart 3) ---
+        "student_count_list_in_course": student_count_list_in_course,
+
+        # --- Data for "Total Student in Each Subject" (Chart 4) ---
+        "subject_list_for_pie_chart": subject_list_for_pie_chart,
+        "student_count_in_subject_for_pie_chart": student_count_in_subject_for_pie_chart,
+
+        # --- Data for "Staff Attendance vs. Leave" (Chart 5) ---
+        "staff_name_list": staff_name_list,
+        "attendance_present_list_staff": attendance_present_list_staff,
+        "attendance_absent_list_staff": attendance_absent_list_staff,
+
+        # --- Data for "Student Attendance vs. Leave" (Chart 6) ---
+        "student_name_list": student_name_list,
+        "attendance_present_list_student": attendance_present_list_student,
+        "attendance_absent_list_student": attendance_absent_list_student,
+    }
+    return render(request, 'hod_template/home_content.html', context)
 
 
 def add_staff(request):

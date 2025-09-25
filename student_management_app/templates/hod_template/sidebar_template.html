@@ -33,6 +33,16 @@
                     id="navigation"
             >
                 <li class="nav-item">
+                    {% url 'admin_home' as admin_home_url %}
+                    <a href="{{ admin_home_url }}" class="nav-link
+                            {% if request.path == admin_home_url %} active {% endif %}">
+                        <i class="nav-icon bi bi-house-door-fill"></i>
+                        <p>
+                            Home
+                        </p>
+                    </a>
+                </li>
+                <li class="nav-item">
                     {% url 'add_staff' as add_staff_url %}
                     <a href="{{ add_staff_url }}" class="nav-link
                             {% if request.path == add_staff_url %} active {% endif %}">

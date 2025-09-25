@@ -102,7 +102,7 @@
                                 <i class="bi bi-calendar-check-fill"></i>
                             </div>
                             <a href="{% url 'student_view_attendance' %}"
-                               class="small-box-footer link-dark link-underline-opacity-0 link-underline-opacity-50-hover">
+                               class="small-box-footer link-light link-underline-opacity-0 link-underline-opacity-50-hover">
                                 More info <i class="bi bi-link-45deg"></i>
                             </a>
                         </div>
@@ -149,7 +149,7 @@
                                 </div>
                             </div>
                             <div class="card-body">
-                                <div id="pieChart" style="min-height: 250px;"></div>
+                                <div id="donutChart" style="min-height: 250px;"></div>
                             </div>
                             <!-- /.card-body -->
                         </div>
@@ -209,7 +209,7 @@
 
             // If there's no data, don't render the chart
             if (presentCount === 0 && absentCount === 0) {
-                document.querySelector('#pieChart').innerHTML = '<p class="text-center text-muted">No attendance data to display.</p>';
+                document.querySelector('#donutChart').innerHTML = '<p class="text-center text-muted">No attendance data to display.</p>';
                 return;
             }
 
@@ -250,7 +250,7 @@
                 }]
             };
 
-            const pie_chart = new ApexCharts(document.querySelector('#pieChart'), pie_chart_options);
+            const pie_chart = new ApexCharts(document.querySelector('#donutChart'), pie_chart_options);
             pie_chart.render();
         });
     </script>
