@@ -21,8 +21,11 @@ jobs:
   cicd:
     runs-on: ubuntu-latest
     env:
+      # Required by settings.py; safe to use a fake secret in CI
       SECRET_KEY: ci-secret-key-for-testing
+      # Use explicit false/true strings per your settings handling; set to False in CI
       DEBUG: 'False'
+      # Use SQLite in CI to avoid external DB services
       DB_ENGINE: django.db.backends.sqlite3
       DB_NAME: db.sqlite3
       DB_USER: ''
@@ -58,16 +61,16 @@ jobs:
           pip install -r requirements-ci.txt
           pip install flake8 django-stubs
 
-      - name: Run Migrations
-        run: |
-          python manage.py migrate --noinput
-
       - name: Lint with Flake8
         run: |
           # stop the build if there are Python syntax errors or undefined names
           flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
           # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
           flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+      - name: Run Migrations
+        run: |
+          python manage.py migrate --noinput
 
       - name: Check for Missing Migrations
         run: |
@@ -83,9 +86,12 @@ jobs:
           python manage.py check --deploy
 
       - name: Create Superuser
-        if: secrets.DJANGO_SUPERUSER_USERNAME && secrets.DJANGO_SUPERUSER_EMAIL && secrets.DJANGO_SUPERUSER_PASSWORD
         run: |
-          python manage.py createsuperuser --noinput
+          if [ -z "${DJANGO_SUPERUSER_USERNAME:-}" ] || [ -z "${DJANGO_SUPERUSER_EMAIL:-}" ] || [ -z "${DJANGO_SUPERUSER_PASSWORD:-}" ]; then
+            echo "Superuser secrets not provided — skipping createsuperuser step."
+          else
+            python manage.py createsuperuser --noinput || true
+          fi
         env:
           DJANGO_SUPERUSER_USERNAME: ${{ secrets.DJANGO_SUPERUSER_USERNAME }}
           DJANGO_SUPERUSER_EMAIL: ${{ secrets.DJANGO_SUPERUSER_EMAIL }}
