@@ -20,6 +20,19 @@ jobs:
 
   cicd:
     runs-on: ubuntu-latest
+    env:
+      # Required by settings.py; safe to use a fake secret in CI
+      SECRET_KEY: ci-secret-key-for-testing
+      # Use explicit false/true strings per your settings handling; set to False in CI
+      DEBUG: 'False'
+      # Use SQLite in CI to avoid external DB services
+      DB_ENGINE: django.db.backends.sqlite3
+      DB_NAME: db.sqlite3
+      DB_USER: ''
+      DB_PASSWORD: ''
+      DB_HOST: ''
+      DB_PORT: ''
+
     strategy:
       fail-fast: false
       max-parallel: 4
@@ -39,15 +52,32 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+          pip install flake8
+
+      - name: Lint with Flake8
+        run: |
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=120 --statistics
 
       - name: Run Migrations
         run: |
-#          python manage.py makemigrations
-          python manage.py migrate
+          python manage.py migrate --noinput
+
+      - name: Collect Static Files
+        run: |
+          python manage.py collectstatic --noinput
+
+      - name: Django Check
+        run: |
+          python manage.py check --deploy || true
 
       - name: Create Superuser
         run: |
           python manage.py createsuperuser --noinput || true
+        env:
+          DJANGO_SUPERUSER_USERNAME: ${{ secrets.DJANGO_SUPERUSER_USERNAME }}
+          DJANGO_SUPERUSER_EMAIL: ${{ secrets.DJANGO_SUPERUSER_EMAIL }}
+          DJANGO_SUPERUSER_PASSWORD: ${{ secrets.DJANGO_SUPERUSER_PASSWORD }}
 
       - name: Run Tests
         run: |
