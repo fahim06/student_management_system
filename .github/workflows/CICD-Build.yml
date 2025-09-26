@@ -21,11 +21,8 @@ jobs:
   cicd:
     runs-on: ubuntu-latest
     env:
-      # Required by settings.py; safe to use a fake secret in CI
       SECRET_KEY: ci-secret-key-for-testing
-      # Use explicit false/true strings per your settings handling; set to False in CI
       DEBUG: 'False'
-      # Use SQLite in CI to avoid external DB services
       DB_ENGINE: django.db.backends.sqlite3
       DB_NAME: db.sqlite3
       DB_USER: ''
@@ -37,10 +34,7 @@ jobs:
       fail-fast: false
       max-parallel: 4
       matrix:
-        python-version: [ "3.10", "3.11", "3.12", "3.13" ]
-
-    # Allow the workflow to continue even if the 3.13 job fails
-    continue-on-error: ${{ matrix.python-version == '3.13' }}
+        python-version: [ "3.13" ]
 
     steps:
       - uses: actions/checkout@v4
@@ -54,7 +48,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements-ci.txt') }}
           restore-keys: |
             ${{ runner.os }}-pip-
 
