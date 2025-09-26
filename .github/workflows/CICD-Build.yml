@@ -42,7 +42,7 @@ jobs:
 
       - name: Run Migrations
         run: |
-          python manage.py makemigrations
+#          python manage.py makemigrations
           python manage.py migrate
 
       - name: Create Superuser
