@@ -58,6 +58,10 @@ jobs:
           pip install -r requirements-ci.txt
           pip install flake8 django-stubs
 
+      - name: Run Migrations
+        run: |
+          python manage.py migrate --noinput
+
       - name: Lint with Flake8
         run: |
           # stop the build if there are Python syntax errors or undefined names
@@ -69,15 +73,6 @@ jobs:
         run: |
           # Fail if there are model changes that aren't committed as migrations
           python manage.py makemigrations --dry-run --check
-
-      - name: Make Migrations (generate if missing)
-        run: |
-          # Create migrations for any apps that need them. This writes migration files in the workspace
-          python manage.py makemigrations --noinput || true
-
-      - name: Run Migrations
-        run: |
-          python manage.py migrate --noinput
 
       - name: Collect Static Files
         run: |
