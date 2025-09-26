@@ -83,7 +83,7 @@ jobs:
           python manage.py check --deploy
 
       - name: Create Superuser
-        if: ${{ secrets.DJANGO_SUPERUSER_USERNAME && secrets.DJANGO_SUPERUSER_EMAIL && secrets.DJANGO_SUPERUSER_PASSWORD }}
+        if: secrets.DJANGO_SUPERUSER_USERNAME && secrets.DJANGO_SUPERUSER_EMAIL && secrets.DJANGO_SUPERUSER_PASSWORD
         run: |
           python manage.py createsuperuser --noinput
         env:
