@@ -68,14 +68,14 @@ jobs:
           # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
           flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
+      - name: Run Migrations
+        run: |
+          python manage.py migrate --noinput
+
       - name: Check for Missing Migrations
         run: |
           # Fail if there are model changes that aren't committed as migrations
           python manage.py makemigrations --dry-run --check
-
-      - name: Run Migrations
-        run: |
-          python manage.py migrate --noinput
 
       - name: Collect Static Files
         run: |
