@@ -87,11 +87,48 @@ jobs:
 
       - name: Create Superuser
         run: |
-          if [ -z "${DJANGO_SUPERUSER_USERNAME:-}" ] || [ -z "${DJANGO_SUPERUSER_EMAIL:-}" ] || [ -z "${DJANGO_SUPERUSER_PASSWORD:-}" ]; then
-            echo "Superuser secrets not provided — skipping createsuperuser step."
-          else
-            python manage.py createsuperuser --noinput || true
-          fi
+          echo "Checking for CustomUser table before attempting to create superuser..."
+          # Retry a few times in case migrations are still finalizing
+          max_attempts=6
+          attempt=1
+          while [ $attempt -le $max_attempts ]; do
+            echo "Attempt $attempt/$max_attempts: checking database for student_management_app_customuser table..."
+            python - <<'PY'
+            import sys
+            from django.db import connection
+            try:
+                tables = connection.introspection.table_names()
+            except Exception as e:
+                print('DB not ready:', e)
+                sys.exit(2)
+            if 'student_management_app_customuser' in tables:
+                print('CustomUser table found')
+                sys.exit(0)
+            else:
+                print('CustomUser table not found')
+                sys.exit(1)
+            PY
+                        rc=$?
+                        if [ $rc -eq 0 ]; then
+                          if [ -z "${DJANGO_SUPERUSER_USERNAME:-}" ] || [ -z "${DJANGO_SUPERUSER_EMAIL:-}" ] || [ -z "${DJANGO_SUPERUSER_PASSWORD:-}" ]; then
+                            echo "Superuser secrets not provided — skipping createsuperuser step."
+                          else
+                            echo "Creating superuser..."
+                            python manage.py createsuperuser --noinput || true
+                          fi
+                          break
+                        fi
+                        if [ $rc -eq 2 ]; then
+                          # DB not ready; wait a bit longer
+                          sleep 2
+                        else
+                          sleep 1
+                        fi
+                        attempt=$((attempt+1))
+                      done
+                      if [ $attempt -gt $max_attempts ]; then
+                        echo "Warning: CustomUser table not found after $max_attempts attempts - skipping createsuperuser."
+                      fi
         env:
           DJANGO_SUPERUSER_USERNAME: ${{ secrets.DJANGO_SUPERUSER_USERNAME }}
           DJANGO_SUPERUSER_EMAIL: ${{ secrets.DJANGO_SUPERUSER_EMAIL }}
