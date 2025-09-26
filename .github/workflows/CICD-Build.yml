@@ -51,13 +51,22 @@ jobs:
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install flake8
+          pip install -r requirements-ci.txt
 
       - name: Lint with Flake8
         run: |
           flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
           flake8 . --count --exit-zero --max-complexity=10 --max-line-length=120 --statistics
+
+      - name: Check for Missing Migrations
+        run: |
+          # Fail if there are model changes that aren't committed as migrations
+          python manage.py makemigrations --dry-run --check
+
+      - name: Make Migrations (generate if missing)
+        run: |
+          # Create migrations for any apps that need them. This writes migration files in the workspace
+          python manage.py makemigrations --noinput || true
 
       - name: Run Migrations
         run: |
@@ -72,6 +81,7 @@ jobs:
           python manage.py check --deploy || true
 
       - name: Create Superuser
+        if: ${{ secrets.DJANGO_SUPERUSER_USERNAME && secrets.DJANGO_SUPERUSER_EMAIL && secrets.DJANGO_SUPERUSER_PASSWORD }}
         run: |
           python manage.py createsuperuser --noinput || true
         env:
