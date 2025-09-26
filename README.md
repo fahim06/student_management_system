@@ -61,7 +61,7 @@ purposes.
 
 Make sure you have the following installed on your system:
 
-- [Python](https://www.python.org/downloads/) (version 3.8 or higher)
+- [Python](https://www.python.org/downloads/) (version 3.10 or higher)
 - `pip` (Python package installer)
 - Git
 

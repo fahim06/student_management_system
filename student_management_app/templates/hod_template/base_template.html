@@ -55,6 +55,7 @@
     <!--end::Third Party Plugin(Bootstrap Icons)-->
     <!--begin::Required Plugin(AdminLTE)-->
     <link rel="stylesheet" href="{% static './css/adminlte.css' %}"/>
+    <link rel="icon" href="{% static './favicon.ico' %}"/>
     {% block custom_css %}
 
     {% endblock custom_css %}
@@ -82,7 +83,7 @@
                 <li class="nav-item">
                     <a class="nav-link px-3" href="{% url 'logout' %}">
                         <i class="bi bi-box-arrow-right me-1"></i>
-                        Logout 
+                        Logout
                     </a>
                 </li>
             </ul>
