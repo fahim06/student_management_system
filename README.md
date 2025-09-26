@@ -4,6 +4,7 @@ A comprehensive, Django-based web application for managing students, staff, cour
 educational institution. The system provides dedicated portals for Administrators, Staff, and Students, each with
 role-specific functionalities.
 
+![Python CI](https://github.com/fahim06/student_management_system/actions/workflows/CICD-Build.yml/badge.svg)
 ![GitHub top language](https://img.shields.io/badge/Python-1E415E?style=for-the-badge&logo=python&logoColor=blue)
 ![Django](https://img.shields.io/badge/Django-092E20?style=for-the-badge&logo=django&logoColor=white)
 ![Bootstrap](https://img.shields.io/badge/Bootstrap-563D7C?style=for-the-badge&logo=bootstrap&logoColor=white)
