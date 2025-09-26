@@ -21,8 +21,11 @@ jobs:
   cicd:
     runs-on: ubuntu-latest
     env:
+      # Required by settings.py; safe to use a fake secret in CI
       SECRET_KEY: ci-secret-key-for-testing
+      # Use explicit false/true strings per your settings handling; set to False in CI
       DEBUG: 'False'
+      # Use SQLite in CI to avoid external DB services
       DB_ENGINE: django.db.backends.sqlite3
       DB_NAME: db.sqlite3
       DB_USER: ''
@@ -70,11 +73,6 @@ jobs:
           # Fail if there are model changes that aren't committed as migrations
           python manage.py makemigrations --dry-run --check
 
-      - name: Make Migrations (generate if missing)
-        run: |
-          # Create migrations for any apps that need them. This writes migration files in the workspace
-          python manage.py makemigrations --noinput || true
-
       - name: Run Migrations
         run: |
           python manage.py migrate --noinput
@@ -88,9 +86,12 @@ jobs:
           python manage.py check --deploy
 
       - name: Create Superuser
-        if: ${{ secrets.DJANGO_SUPERUSER_USERNAME && secrets.DJANGO_SUPERUSER_EMAIL && secrets.DJANGO_SUPERUSER_PASSWORD }}
         run: |
-          python manage.py createsuperuser --noinput
+          if [ -z "${DJANGO_SUPERUSER_USERNAME:-}" ] || [ -z "${DJANGO_SUPERUSER_EMAIL:-}" ] || [ -z "${DJANGO_SUPERUSER_PASSWORD:-}" ]; then
+            echo "Superuser secrets not provided — skipping createsuperuser step."
+          else
+            python manage.py createsuperuser --noinput || true
+          fi
         env:
           DJANGO_SUPERUSER_USERNAME: ${{ secrets.DJANGO_SUPERUSER_USERNAME }}
           DJANGO_SUPERUSER_EMAIL: ${{ secrets.DJANGO_SUPERUSER_EMAIL }}
