@@ -46,8 +46,8 @@ def admin_home(request):
     # This chart shows the number of students in the *course* that a subject belongs to.
     # An efficient query to get this data.
 
-    subject_data = Subject.objects.select_related('course_id').annotate(
-        student_count_in_course=Count('course_id__student')
+    subject_data = Subject.objects.select_related('course').annotate(
+        student_count_in_course=Count('course__student')
     ).values('subject_name', 'student_count_in_course')
 
     subject_list_for_pie_chart = [item['subject_name'] for item in subject_data]
@@ -130,9 +130,12 @@ def add_staff_save(request):
         address = request.POST.get("address")
         try:
             user = CustomUser.objects.create_user(username=username, password=password, email=email,
-                                                  first_name=first_name, last_name=last_name, user_type=2)
-            user.staff.address = address
-            user.save()
+                                                  first_name=first_name, last_name=last_name, user_type='2')
+            # The user's Staff profile is created by a signal.
+            # We need to fetch that profile, update it, and then save it.
+            staff_profile = user.staff
+            staff_profile.address = address
+            staff_profile.save()
             messages.success(request, "Successfully Added Staff")
             return HttpResponseRedirect(reverse("add_staff"))
         except Exception as e:
@@ -180,19 +183,22 @@ def add_student_save(request):
             course_id = form.cleaned_data["course"]
             sex = form.cleaned_data["sex"]
 
-            profile_picture = request.FILES.get("profile_picture")
-            fileStorage = FileSystemStorage()
-            filename = fileStorage.save(profile_picture.name, profile_picture)
-            profile_picture_url = fileStorage.url(filename)
+            # Handle file upload safely
+            profile_picture = request.FILES.get("profile_picture", None)
+            profile_picture_url = ""
+            if profile_picture:
+                fileStorage = FileSystemStorage()
+                filename = fileStorage.save(profile_picture.name, profile_picture)
+                profile_picture_url = fileStorage.url(filename)
 
             try:
                 user = CustomUser.objects.create_user(username=username, password=password, email=email,
-                                                      first_name=first_name, last_name=last_name, user_type=3)
+                                                      first_name=first_name, last_name=last_name, user_type='3')
                 user.student.address = address
-                course_obj = Courses.objects.get(id=course_id)
-                user.student.course_id = course_obj
-                session_year = SessionYear.objects.get(id=session_year_id)
-                user.student.session_year_id = session_year
+                # Assign the object directly to the model field
+                user.student.course = course_id
+                # Assign the object directly to the model field
+                user.student.session_year = session_year_id
                 user.student.gender = sex
                 user.student.profile_picture = profile_picture_url
                 user.save()
@@ -224,7 +230,7 @@ def add_subject_save(request):
         staff = CustomUser.objects.get(id=staff_id)
 
         try:
-            subject = Subject(subject_name=subject_name, course_id=course, staff_id=staff)
+            subject = Subject(subject_name=subject_name, course=course, staff=staff)
             subject.save()
             messages.success(request, "Successfully Added Subject")
             return HttpResponseRedirect(reverse("add_subject"))
@@ -249,7 +255,9 @@ def manage_course(request):
 
 
 def manage_subject(request):
-    subjects = Subject.objects.all()
+    # Use select_related to pre-fetch related Course and Staff (CustomUser) objects.
+    # This is much more efficient than fetching them one by one in the template.
+    subjects = Subject.objects.select_related('course', 'staff').all()
     return render(request, "hod_template/manage_subject_template.html", {"subjects": subjects})
 
 
@@ -297,9 +305,9 @@ def edit_student(request, student_id):
     form.fields['last_name'].initial = student.admin.last_name
     form.fields['username'].initial = student.admin.username
     form.fields['address'].initial = student.address
-    form.fields['course'].initial = student.course_id.id
+    form.fields['course'].initial = student.course.id
     form.fields['sex'].initial = student.gender
-    form.fields['session_year_id'].initial = student.session_year_id.id
+    form.fields['session_year_id'].initial = student.session_year.id
     return render(request, "hod_template/edit_student_template.html",
                   {"form": form, "id": student_id, "username": student.admin.username})
 
@@ -331,33 +339,27 @@ def edit_student_save(request):
             else:
                 profile_picture_url = None
 
-            try:
-                user = CustomUser.objects.get(id=student_id)
-                user.first_name = first_name
-                user.last_name = last_name
-                user.username = username
-                user.email = email
-                user.save()
+            user = CustomUser.objects.get(id=student_id)
+            user.first_name = first_name
+            user.last_name = last_name
+            user.username = username
+            user.email = email
+            user.save()
 
-                student = Student.objects.get(admin=student_id)
-                student.address = address
-                session_year = SessionYear.objects.get(id=session_year_id)
-                student.session_year_id = session_year
-                student.gender = sex
+            student = Student.objects.get(admin=student_id)
+            student.address = address
+            student.session_year = session_year_id
+            student.gender = sex
+            student.course = course_id
 
-                course = Courses.objects.get(id=course_id)
-                student.course_id = course
-                if profile_picture_url != None:
-                    student.profile_picture = profile_picture_url
+            if profile_picture_url is not None:
+                student.profile_picture = profile_picture_url
 
-                student.save()
-                del request.session['student_id']
+            student.save()
+            del request.session['student_id']
 
-                messages.success(request, "Successfully Edited Student")
-                return HttpResponseRedirect(reverse("manage_student"))
-            except Exception as e:
-                messages.error(request, f"Failed to Edit Student: {e}")
-                return HttpResponseRedirect(reverse("manage_student"))
+            messages.success(request, "Successfully Edited Student")
+            return HttpResponseRedirect(reverse("manage_student"))
         else:
             form = EditStudentForm(request.POST)
             student = Student.objects.get(admin=student_id)
@@ -386,9 +388,9 @@ def edit_subject_save(request):
             subject = Subject.objects.get(id=subject_id)
             subject.subject_name = subject_name
             staff = CustomUser.objects.get(id=staff_id)
-            subject.staff_id = staff
+            subject.staff = staff
             course = Courses.objects.get(id=course_id)
-            subject.course_id = course
+            subject.course = course
             subject.save()
 
             messages.success(request, "Successfully Edited Subject")
@@ -455,7 +457,7 @@ def check_email_exist(request):
 
 @csrf_exempt
 def check_username_exist(request):
-    username = request.POST.get("email")
+    username = request.POST.get("username")
     user_obj = CustomUser.objects.filter(username=username).exists()
     if user_obj:
         return HttpResponse(True)
@@ -590,18 +592,23 @@ def admin_profile_save(request):
         first_name = request.POST.get("first_name")
         last_name = request.POST.get("last_name")
         password = request.POST.get("password")
-        profile_picture = request.FILES.get("profile_picture")
-        fileStorage = FileSystemStorage()
-        filename = fileStorage.save(profile_picture.name, profile_picture)
-        profile_picture_url = fileStorage.url(filename)
 
         try:
             customuser = CustomUser.objects.get(id=request.user.id)
             customuser.first_name = first_name
             customuser.last_name = last_name
-            customuser.student.profile_picture = profile_picture_url
 
-            if password != None and password != "":
+            # An HOD user does not have a student profile, so we should not try to access it.
+            # The logic for updating a student's profile picture should be in a
+            # separate view accessible only to students.
+            # if request.FILES.get('profile_picture'):
+            #     profile_picture = request.FILES.get("profile_picture")
+            #     fileStorage = FileSystemStorage()
+            #     filename = fileStorage.save(profile_picture.name, profile_picture)
+            #     profile_picture_url = fileStorage.url(filename)
+            #     customuser.student.profile_picture = profile_picture_url
+
+            if password is not None and password != "":
                 customuser.set_password(password)
             customuser.save()
             messages.success(request, "Successfully Edited Profile")
