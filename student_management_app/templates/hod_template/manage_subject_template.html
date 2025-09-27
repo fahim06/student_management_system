@@ -6,6 +6,17 @@
 
     <section class="content">
         <div class="container-fluid">
+            {% if messages %}
+                <div class="row">
+                    <div class="col-12">
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} text-center" role="alert">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
             <div class="row">
                 <div class="col-12">
                     <div class="card">
@@ -41,9 +52,9 @@
                                     <tr>
                                         <td>{{ subject.id }}</td>
                                         <td>{{ subject.subject_name }}</td>
-                                        <td>{{ subject.course_id.course_name }}</td>
-                                        <td>{{ subject.course_id.id }}</td>
-                                        <td>{{ subject.staff_id.first_name }} {{ subject.staff_id.last_name }}</td>
+                                        <td>{{ subject.course.course_name }}</td>
+                                        <td>{{ subject.course.id }}</td>
+                                        <td>{{ subject.staff.first_name }} {{ subject.staff.last_name }}</td>
                                         <td>
                                             <a href="/edit_subject/{{ subject.id }}"
                                                class="btn btn-primary btn-sm">Edit</a>

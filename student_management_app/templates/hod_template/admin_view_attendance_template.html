@@ -1,0 +1,220 @@
+{% extends 'hod_template/base_template.html' %}
+{% block page_title %}
+    View Attendance
+{% endblock page_title %}
+{% block main_content %}
+
+    <section class="content">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-12">
+                    <div class="card card-primary card-outline mb-4">
+                        <div class="card-header">
+                            <h3 class="card-title"><i class="fas fa-calendar-check me-2"></i>View Attendance</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="subject" class="form-label">Subject</label>
+                                        <select class="form-select" name="subject" id="subject">
+                                            <option value="">Select Subject</option>
+                                            {% for subject in subjects %}
+                                                <option value="{{ subject.id }}">{{ subject.subject_name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="session_year_id" class="form-label">Session Year</label>
+                                        <select class="form-select" name="session_year_id" id="session_year_id">
+                                            <option value="">Select Session</option>
+                                            {% for session_year in session_year_id %}
+                                                <option value="{{ session_year.id }}">{{ session_year.session_start_year }}
+                                                    to {{ session_year.session_end_year }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row mt-3">
+                                <div class="col-md-12">
+                                    <div class="form-group" id="attendance_block" style="display: none;">
+                                        <label for="attendance_date" class="form-label">Attendance Date</label>
+                                        <select class="form-select" name="attendance_date" id="attendance_date">
+                                        </select>
+                                    </div>
+                                    <div id="date-loader" class="text-center" style="display: none;">
+                                        <div class="spinner-border text-primary" role="status">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                        <p>Fetching attendance dates...</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="error-message" class="alert alert-danger mt-3" style="display: none;"></div>
+                        </div>
+                        <div id="attendance-results-container" class="card-footer bg-light" style="display: none;">
+                            <h4 id="results-header" class="mb-3"></h4>
+                            <div id="student-data-table"></div>
+                            <div id="student-loader" class="text-center" style="display: none;">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <p>Fetching student data...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+{% endblock main_content %}
+{% block custom_js %}
+    <script>
+        $(document).ready(function () {
+            // Function to get CSRF token from cookies for secure POST requests
+            function getCookie(name) {
+                let cookieValue = null;
+                if (document.cookie && document.cookie !== '') {
+                    const cookies = document.cookie.split(';');
+                    for (let i = 0; i < cookies.length; i++) {
+                        const cookie = cookies[i].trim();
+                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
+                    }
+                }
+                return cookieValue;
+            }
+
+            const csrftoken = getCookie('csrftoken');
+
+            function fetchAttendanceDates() {
+                const subjectId = $("#subject").val();
+                const sessionId = $("#session_year_id").val();
+                const $attendanceBlock = $("#attendance_block");
+                const $attendanceDateSelect = $("#attendance_date");
+                const $dateLoader = $("#date-loader");
+                const $errorMessage = $("#error-message");
+                const $resultsContainer = $("#attendance-results-container");
+
+                // Reset subsequent fields
+                $attendanceBlock.hide();
+                $attendanceDateSelect.html('');
+                $resultsContainer.hide();
+                $errorMessage.hide();
+
+                if (!subjectId || !sessionId) {
+                    return; // Do nothing if one of the fields is not selected
+                }
+
+                $dateLoader.show();
+
+                $.ajax({
+                    url: "{% url 'admin_get_attendance_dates' %}",
+                    type: "POST",
+                    headers: {'X-CSRFToken': csrftoken},
+                    data: {
+                        subject: subjectId,
+                        session_year_id: sessionId
+                    },
+                })
+                    .done(function (response) {
+                        try {
+                            const data = JSON.parse(response);
+                            if (data.length > 0) {
+                                let options = '<option value="">Select a Date</option>';
+                                data.forEach(function (date) {
+                                    options += `<option value="${date.id}">${date.attendance_date}</option>`;
+                                });
+                                $attendanceDateSelect.html(options);
+                                $attendanceBlock.slideDown();
+                            } else {
+                                $errorMessage.text("No attendance records found for the selected subject and session.").slideDown();
+                            }
+                        } catch (e) {
+                            console.error("Failed to parse server response:", e);
+                            $errorMessage.text("Received an invalid response from the server.").slideDown();
+                        }
+                    })
+                    .fail(function () {
+                        $errorMessage.text("An error occurred while fetching attendance dates.").slideDown();
+                    })
+                    .always(function () {
+                        $dateLoader.hide();
+                    });
+            }
+
+            function fetchStudentData() {
+                const attendanceDateId = $("#attendance_date").val();
+                const $resultsContainer = $("#attendance-results-container");
+                const $studentDataTable = $("#student-data-table");
+                const $studentLoader = $("#student-loader");
+                const $errorMessage = $("#error-message");
+
+                $errorMessage.hide();
+                $studentDataTable.html('');
+
+                if (!attendanceDateId) {
+                    $resultsContainer.slideUp();
+                    return;
+                }
+
+                $resultsContainer.slideDown();
+                $studentLoader.show();
+
+                $.ajax({
+                    url: "{% url 'admin_get_student_attendance' %}",
+                    type: "POST",
+                    headers: {'X-CSRFToken': csrftoken},
+                    data: {attendance_date: attendanceDateId}
+                })
+                    .done(function (response) {
+                        try {
+                            const data = JSON.parse(response);
+                            const subjectName = $("#subject option:selected").text();
+                            const dateText = $("#attendance_date option:selected").text();
+                            $("#results-header").html(`Attendance for <strong>${subjectName}</strong> on <strong>${dateText}</strong>`);
+
+                            let tableHtml = `<table class="table table-striped table-hover">
+                                                <thead class="table-dark">
+                                                    <tr><th>#</th><th>Student Name</th><th>Status</th></tr>
+                                                </thead>
+                                                <tbody>`;
+                            let count = 1;
+                            data.forEach(function (student) {
+                                const statusBadge = student.status
+                                    ? '<span class="badge bg-success">Present</span>'
+                                    : '<span class="badge bg-danger">Absent</span>';
+                                tableHtml += `<tr>
+                                                <td>${count++}</td>
+                                                <td>${student.name}</td>
+                                                <td>${statusBadge}</td>
+                                              </tr>`;
+                            });
+                            tableHtml += `</tbody></table>`;
+                            $studentDataTable.html(tableHtml);
+                        } catch (e) {
+                            console.error("Failed to parse student data response:", e);
+                            $errorMessage.text("Received an invalid response from the server.").slideDown();
+                        }
+                    })
+                    .fail(function () {
+                        $errorMessage.text("An error occurred while fetching student data.").slideDown();
+                        $resultsContainer.slideUp();
+                    })
+                    .always(function () {
+                        $studentLoader.hide();
+                    });
+            }
+
+            // Event Listeners
+            $("#subject, #session_year_id").on("change", fetchAttendanceDates);
+            $("#attendance_date").on("change", fetchStudentData);
+        });
+    </script>
+{% endblock %}

@@ -61,7 +61,8 @@
 <body class="login-page bg-body-secondary">
 <div class="login-box">
     <div class="login-logo">
-        <a href="{% static 'index2.html' %}"><b>Student </b>Management System</a>
+        <b>Student </b>
+        Management System
     </div>
     <!-- /.login-logo -->
     <div class="card">
@@ -80,9 +81,13 @@
                 <!--begin::Row-->
                 <div class="row">
                     <div class="col-8">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault"/>
+                            <label class="form-check-label" for="flexCheckDefault"> Remember Me </label>
+                        </div>
                     </div>
                     <!-- /.col -->
-                    <div class="col-12">
+                    <div class="col-12 mt-3">
                         <div class="d-grid gap-2">
                             <button type="submit" class="btn btn-primary">Sign In</button>
                         </div>
@@ -101,6 +106,12 @@
                 </div>
                 <!--end::Row-->
             </form>
+
+            <p class="mb-1 mt-3 text-center">
+                <a href="{% url 'password_reset' %}">I forgot my password</a>
+            </p>
+
+            {% include '_messages.html' %}
         </div>
         <!-- /.login-card-body -->
     </div>

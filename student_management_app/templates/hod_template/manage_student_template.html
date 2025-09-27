@@ -6,6 +6,17 @@
 
     <section class="content">
         <div class="container-fluid">
+            {% if messages %}
+                <div class="row">
+                    <div class="col-12">
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} text-center" role="alert">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
             <div class="row">
                 <div class="col-12">
                     <div class="card">
@@ -54,9 +65,8 @@
                                         <td>{{ student.address }}</td>
                                         <td>{{ student.gender }}</td>
                                         <td><img src="{{ student.profile_picture }}" style="width: 75px"/></td>
-                                        <td>{{ student.session_year_id.session_start_year }}
-                                            to {{ student.session_year_id.session_end_year }}</td>
-                                        <td>{{ student.course_id.course_name }}</td>
+                                        <td>{{ student.session_year }}</td>
+                                        <td>{{ student.course.course_name }}</td>
                                         <td>{{ student.admin.last_login }}</td>
                                         <td>{{ student.admin.date_joined }}</td>
                                         <td>

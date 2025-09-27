@@ -1,0 +1,39 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Database files
+*.sqlite3
+
+# IDE files
+.vscode/
+.idea/
+
+# Environment variables
+# This is the most important part for keeping secrets safe!
+.env
+
+# OS
+*.swp
+.DS_Store
+
+# Virtual environment
+venv/
+
+# Django project specific
+# Ignore user-uploaded files
+/media/
+# Ignore collected static files for deployment
+/static/
+
+# Local settings
+local_settings.py
+
+# Ignore any files or directories specified in .gitignore_global
+.gitignore_global
+
+# Ignore any files or directories specified in .gitignore_local
+.gitignore_local
+

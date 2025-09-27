@@ -1,15 +1,4 @@
-# -- Core Django Framework --
-django~=5.2
-
-# -- Database Connector --
-# This project uses MySQL. mysqlclient is the recommended C-based connector
-# for performance. Ensure you have the necessary system dependencies to install it.
+django
 mysqlclient
-
-# -- Environment Variables --
-# Used to load configuration from a .env file into the environment.
-python-dotenv~=1.0
-
-# -- Image Handling --
-# Required by Django for processing image uploads (e.g., profile pictures).
-Pillow~=10.3
+pillow
+python-dotenv

@@ -5,7 +5,7 @@
     <!--begin::Sidebar Brand-->
     <div class="sidebar-brand">
         <!--begin::Brand Link-->
-        <a href="" class="brand-link">
+        <a href="{% url 'staff_profile' %}" class="brand-link">
             <!--begin::Brand Image-->
             <img
                     src="{% static './assets/img/AdminLTELogo.png' %}"
@@ -46,7 +46,7 @@
                     {% url 'staff_take_attendance' as staff_take_attendance_url %}
                     <a href="{{ staff_take_attendance_url }}" class="nav-link
                             {% if request.path == staff_take_attendance_url %} active {% endif %}">
-                        <i class="nav-icon bi bi-clipboard-check"></i>
+                        <i class="nav-icon bi bi-person-check"></i>
                         <p>
                             Take Attendance
                         </p>
@@ -56,7 +56,7 @@
                     {% url 'staff_update_attendance' as staff_update_attendance_url %}
                     <a href="{{ staff_update_attendance_url }}" class="nav-link
                             {% if request.path == staff_update_attendance_url %} active {% endif %}">
-                        <i class="nav-icon bi bi-clipboard-check"></i>
+                        <i class="nav-icon bi bi-pencil-square"></i>
                         <p>
                             View Update Attendance
                         </p>
@@ -66,7 +66,7 @@
                     {% url 'staff_feedback' as staff_feedback_url %}
                     <a href="{{ staff_feedback_url }}" class="nav-link
                             {% if request.path == staff_feedback_url %} active {% endif %}">
-                        <i class="nav-icon bi bi-clipboard-check"></i>
+                        <i class="nav-icon bi bi-chat-left-text"></i>
                         <p>
                             FeedBack
                         </p>
@@ -76,7 +76,7 @@
                     {% url 'staff_apply_leave' as staff_apply_leave_url %}
                     <a href="{{ staff_apply_leave_url }}" class="nav-link
                             {% if request.path == staff_apply_leave_url %} active {% endif %}">
-                        <i class="nav-icon bi bi-clipboard-check"></i>
+                        <i class="nav-icon bi bi-calendar-plus"></i>
                         <p>
                             Apply Leave
                         </p>

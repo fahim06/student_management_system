@@ -1,56 +1,96 @@
 {% extends 'hod_template/base_template.html' %}
 {% block page_title %}
-    Add Session Year
+    Manage Sessions
 {% endblock page_title %}
 {% block main_content %}
 
     <section class="content">
         <div class="container-fluid">
-            <div class="row">
-                <div class="card card-primary card-outline mb-4">
-                    <!--begin::Header-->
-                    <div class="card-header">
-                        <div class="card-title">Add Session Year</div>
+            {% if messages %}
+                <div class="row">
+                    <div class="col-12">
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} text-center" role="alert">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
                     </div>
-                    <!--end::Header-->
-                    <!--begin::Form-->
-                    <form role="form" action="/add_session_save" method="post">
-                        {% csrf_token %}
-                        <!--begin::Body-->
-                        <div class="card-body">
-                            <div class="form-group">
-                                <label class="form-label">Session Start Year</label>
-                                <input type="date" class="form-control" name="session_start"
-                                       placeholder="Enter Session Start Year">
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Session End Year</label>
-                                <input type="date" class="form-control" name="session_end"
-                                       placeholder="Enter Session End Year">
-                            </div>
-                            <div class="form-group>">
-                                {% if messages %}
-                                    {% for message in messages %}
-                                        {% if message.tags == 'error' %}
-                                            <div class="alert alert-danger"
-                                                 style="margin-top: 10px;text-align: center ">{{ message }}</div>
-                                        {% endif %}
-                                        {% if message.tags == 'success' %}
-                                            <div class="alert alert-success"
-                                                 style="margin-top: 10px;text-align: center ">{{ message }}</div>
-                                        {% endif %}
-                                    {% endfor %}
-                                {% endif %}
-                            </div>
+                </div>
+            {% endif %}
+
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="card card-primary card-outline mb-4">
+                        <div class="card-header">
+                            <h3 class="card-title"><i class="fas fa-plus-circle me-2"></i>Add New Session</h3>
                         </div>
-                        <!--end::Body-->
-                        <!--begin::Footer-->
-                        <div class="card-footer">
-                            <button type="submit" class="btn btn-primary w-100">Add Session</button>
+                        <form role="form" action="{% url 'add_session_save' %}" method="post">
+                            {% csrf_token %}
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="session_start" class="form-label">Session Start Year</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i
+                                                        class="fas fa-calendar-alt"></i></span>
+                                                <input type="date" class="form-control" name="session_start"
+                                                       id="session_start">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="session_end" class="form-label">Session End Year</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i
+                                                        class="fas fa-calendar-alt"></i></span>
+                                                <input type="date" class="form-control" name="session_end"
+                                                       id="session_end">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-footer text-center">
+                                <button type="submit" class="btn btn-primary w-50"><i class="fas fa-save me-2"></i>Add
+                                    Session
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="card card-primary card-outline">
+                        <div class="card-header">
+                            <h3 class="card-title"><i class="fas fa-list-ul me-2"></i>Existing Sessions</h3>
                         </div>
-                        <!--end::Footer-->
-                    </form>
-                    <!--end::Form-->
+                        <div class="card-body table-responsive p-0">
+                            <table class="table table-hover text-nowrap">
+                                <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Session Start</th>
+                                    <th>Session End</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for session in sessions %}
+                                    <tr>
+                                        <td>{{ session.id }}</td>
+                                        <td>{{ session.session_start_year|date:"Y-m-d" }}</td>
+                                        <td>{{ session.session_end_year|date:"Y-m-d" }}</td>
+                                    </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="3" class="text-center text-muted">No sessions have been added
+                                            yet.
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

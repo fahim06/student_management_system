@@ -1,0 +1,86 @@
+{% extends 'student_template/base_template.html' %}
+{% block page_title %}
+    Feedback Message
+{% endblock page_title %}
+{% block main_content %}
+
+    <section class="content">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="card card-primary card-outline mb-4">
+                        <div class="card-header">
+                            <h3 class="card-title"><i class="fas fa-comment-dots me-2"></i>Leave a Feedback Message</h3>
+                        </div>
+                        <form action="{% url 'student_feedback_save' %}" method="POST">
+                            {% csrf_token %}
+                            <div class="card-body">
+                                {% if messages %}
+                                    {% for message in messages %}
+                                        <div class="alert alert-{{ message.tags }} text-center" role="alert">
+                                            {{ message }}
+                                        </div>
+                                    {% endfor %}
+                                {% endif %}
+                                <div class="form-group">
+                                    <label for="feedback_message" class="form-label">Your Message</label>
+                                    <textarea class="form-control" rows="6" name="feedback_message"
+                                              id="feedback_message"
+                                              placeholder="Share your thoughts, suggestions, or concerns here..."></textarea>
+                                </div>
+                            </div>
+                            <div class="card-footer text-end">
+                                <button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane me-2"></i>Send
+                                    Feedback
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="col-md-12">
+                    <div class="card card-primary card-outline mb-4">
+                        <div class="card-header">
+                            <h3 class="card-title"><i class="fas fa-history me-2"></i>Feedback History</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead class="table-light">
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Your Feedback</th>
+                                        <th>Admin Reply</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    {% for row in feedback_data %}
+                                        <tr>
+                                            <td>{{ row.id }}</td>
+                                            <td>{{ row.feedback }}</td>
+                                            <td>
+                                                {% if row.feedback_reply %}
+                                                    {{ row.feedback_reply }}
+                                                {% else %}
+                                                    <span class="text-muted">No reply yet.</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    {% empty %}
+                                        <tr>
+                                            <td colspan="3" class="text-center text-muted">You have not submitted any
+                                                feedback yet.
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+{% endblock main_content %}

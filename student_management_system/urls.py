@@ -14,16 +14,17 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
 
 from student_management_app import views, hodViews, staffViews, studentViews
 
 urlpatterns = [
                   path('admin/', admin.site.urls),
-                  path('demo', views.ShowDemoPage),
+                  path('accounts/', include('django.contrib.auth.urls')),
                   path('', views.ShowLoginPage, name="show_login"),
                   path('get_user_details', views.GetUserDetails),
                   path('logout_user', views.logout_user, name="logout"),
@@ -51,6 +52,31 @@ urlpatterns = [
                   path('edit_course_save', hodViews.edit_course_save, name="edit_course_save"),
                   path('manage_session', hodViews.manage_session, name="manage_session"),
                   path('add_session_save', hodViews.add_session_save, name="add_session_save"),
+                  path('check_email_exist', hodViews.check_email_exist, name="check_email_exist"),
+                  path('check_username_exist', hodViews.check_username_exist, name="check_username_exist"),
+                  path('student_feedback_message', hodViews.student_feedback_message, name="student_feedback_message"),
+                  path('student_feedback_message_replied', hodViews.student_feedback_message_replied,
+                       name="student_feedback_message_replied"),
+                  path('staff_feedback_message', hodViews.staff_feedback_message, name="staff_feedback_message"),
+                  path('staff_feedback_message_replied', hodViews.staff_feedback_message_replied,
+                       name="staff_feedback_message_replied"),
+                  path('student_leave_view', hodViews.student_leave_view, name="student_leave_view"),
+                  path('staff_leave_view', hodViews.staff_leave_view, name="staff_leave_view"),
+                  path('student_approve_leave/<str:leave_id>', hodViews.student_approve_leave,
+                       name="student_approve_leave"),
+                  path('student_disapprove_leave/<str:leave_id>', hodViews.student_disapprove_leave,
+                       name="student_disapprove_leave"),
+                  path('staff_approve_leave/<str:leave_id>', hodViews.staff_approve_leave,
+                       name="staff_approve_leave"),
+                  path('staff_disapprove_leave/<str:leave_id>', hodViews.staff_disapprove_leave,
+                       name="staff_disapprove_leave"),
+                  path('admin_view_attendance', hodViews.admin_view_attendance, name="admin_view_attendance"),
+                  path('admin_get_attendance_dates', hodViews.admin_get_attendance_dates,
+                       name="admin_get_attendance_dates"),
+                  path('admin_get_student_attendance', hodViews.admin_get_student_attendance,
+                       name="admin_get_student_attendance"),
+                  path('admin_profile', hodViews.admin_profile, name="admin_profile"),
+                  path('admin_profile_save', hodViews.admin_profile_save, name="admin_profile_save"),
 
                   # Staff URL Paths
                   path('staff_home', staffViews.staff_home, name="staff_home"),
@@ -66,9 +92,21 @@ urlpatterns = [
                   path('staff_apply_leave_save', staffViews.staff_apply_leave_save, name="staff_apply_leave_save"),
                   path('staff_feedback', staffViews.staff_feedback, name="staff_feedback"),
                   path('staff_feedback_save', staffViews.staff_feedback_save, name="staff_feedback_save"),
+                  path('staff_profile', staffViews.staff_profile, name="staff_profile"),
+                  path('staff_profile_save', staffViews.staff_profile_save, name="staff_profile_save"),
 
                   # Student URL Paths
                   path('student_home', studentViews.student_home, name="student_home"),
+                  path('student_view_attendance', studentViews.student_view_attendance, name="student_view_attendance"),
+                  path('student_view_attendance_post', studentViews.student_view_attendance_post,
+                       name="student_view_attendance_post"),
+                  path('student_apply_leave', studentViews.student_apply_leave, name="student_apply_leave"),
+                  path('student_apply_leave_save', studentViews.student_apply_leave_save,
+                       name="student_apply_leave_save"),
+                  path('student_feedback', studentViews.student_feedback, name="student_feedback"),
+                  path('student_feedback_save', studentViews.student_feedback_save, name="student_feedback_save"),
+                  path('student_profile', studentViews.student_profile, name="student_profile"),
+                  path('student_profile_save', studentViews.student_profile_save, name="student_profile_save"),
 
               ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) + static(settings.STATIC_URL,
                                                                                          document_root=settings.STATIC_ROOT)

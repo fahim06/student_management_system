@@ -5,11 +5,11 @@
     <!--begin::Sidebar Brand-->
     <div class="sidebar-brand">
         <!--begin::Brand Link-->
-        <a href="" class="brand-link">
+        <a href="{% url 'student_profile' %}" class="brand-link">
             <!--begin::Brand Image-->
             <img
                     src="{% static './assets/img/AdminLTELogo.png' %}"
-                    alt="AdminLTE Logo"
+                    alt="User Logo"
                     class="brand-image opacity-75 shadow"
             />
             <!--end::Brand Image-->
@@ -39,6 +39,47 @@
                         <i class="nav-icon bi bi-house-door-fill"></i>
                         <p>
                             Home
+                        </p>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    {% url 'student_view_attendance' as student_view_attendance_url %}
+                    <a href="{{ student_view_attendance_url }}" class="nav-link
+                            {% if request.path == student_view_attendance_url or 'attendance' in request.path %} active {% endif %}">
+                        <i class="nav-icon bi bi-calendar-check"></i>
+                        <p>
+                            View Attendance
+                        </p>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    {# The URL name 'student_apply_leave' would need to be created in your urls.py #}
+                    {% url 'student_apply_leave' as student_apply_leave_url %}
+                    <a href="{{ student_apply_leave_url }}" class="nav-link
+                            {% if request.path == student_apply_leave_url %} active {% endif %}">
+                        <i class="nav-icon bi bi-calendar-plus"></i>
+                        <p>
+                            Apply for Leave
+                        </p>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    {# The URL name 'student_feedback' would need to be created in your urls.py #}
+                    {% url 'student_feedback' as student_feedback_url %}
+                    <a href="{{ student_feedback_url }}" class="nav-link
+                            {% if request.path == student_feedback_url %} active {% endif %}">
+                        <i class="nav-icon bi bi-chat-left-text"></i>
+                        <p>
+                            Send Feedback
+                        </p>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    {# The URL name 'student_notifications' would need to be created in your urls.py #}
+                    <a href="#" class="nav-link">
+                        <i class="nav-icon bi bi-bell"></i>
+                        <p>
+                            Notifications
                         </p>
                     </a>
                 </li>
