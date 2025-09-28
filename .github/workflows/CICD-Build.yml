@@ -103,7 +103,7 @@ jobs:
           python manage.py test
 
   release:
-    if: ${{ github.event_name == 'push' && github.event.ref == 'refs/heads/master' }}
+    if: ${{ github.event_name == 'push' && github.event.ref == 'refs/heads/main' }}
     needs: cicd
     runs-on: ubuntu-latest
 
