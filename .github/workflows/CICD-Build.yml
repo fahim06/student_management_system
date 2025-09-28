@@ -114,6 +114,8 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v5
+        with:
+          fetch-depth: 0   # start from main branch
 
       - name: Set up Git
         run: |
@@ -121,8 +123,10 @@ jobs:
           git config --local user.name "GitHub Action"
           git config advice.addIgnoredFile false
 
-      - name: Merge changes from master to develop
+      - name: Merge main into dev
         run: |
+          git fetch origin dev
           git checkout dev
-          git pull origin main -X ours
+          git pull origin dev
+          git merge origin main -X ours
           git push origin dev
