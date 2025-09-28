@@ -108,7 +108,8 @@ jobs:
     runs-on: ubuntu-latest
 
     permissions:
-      contents: write
+      contents: read
+      packages: write
 
     strategy:
       matrix:
@@ -118,7 +119,8 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v5
         with:
-          fetch-depth: 0   # start from main branch
+          token: ${{ secrets.ACCESS_TOKEN }}
+          fetch-depth: 0
 
       - name: Set up Git
         run: |
