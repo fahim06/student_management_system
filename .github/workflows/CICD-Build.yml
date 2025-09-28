@@ -128,5 +128,5 @@ jobs:
           git fetch origin dev
           git checkout dev
           git pull origin dev
-          git merge origin main -X ours
+          git merge origin/main -X ours
           git push origin dev
