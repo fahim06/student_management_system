@@ -32,6 +32,7 @@ class AdminHOD(models.Model):
 class Staff(models.Model):
     admin = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
     address = models.TextField()
+    fcm_token = models.TextField(default="")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -68,6 +69,7 @@ class Student(models.Model):
     profile_picture = models.FileField()
     address = models.TextField()
     course = models.ForeignKey(Courses, on_delete=models.DO_NOTHING, null=True)
+    fcm_token = models.TextField(default="")
     session_year = models.ForeignKey(SessionYear, on_delete=models.CASCADE, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

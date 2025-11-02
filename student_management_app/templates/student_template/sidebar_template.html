@@ -75,8 +75,11 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    {# The URL name 'student_notifications' would need to be created in your urls.py #}
-                    <a href="#" class="nav-link">
+                    {# Assumes 'student_all_notifications' is the name in your urls.py #}
+                    {% url 'student_all_notifications' as student_all_notifications_url %}
+                    <a href="{{ student_all_notifications_url }}" class="nav-link
+                            {% if request.path == student_all_notifications_url %} active {% endif %}"
+                    >
                         <i class="nav-icon bi bi-bell"></i>
                         <p>
                             Notifications
