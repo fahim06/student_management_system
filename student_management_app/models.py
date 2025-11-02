@@ -13,7 +13,7 @@ class SessionYear(models.Model):
         """
         Return a formatted string for the session year range.
         """
-        return f"{self.session_start_year.strftime('%Y')} to {self.session_end_year.strftime('%Y')}"
+        return f"{self.session_start_year.strftime('%Y')} <b>TO</b> {self.session_end_year.strftime('%Y')}"
 
 
 class CustomUser(AbstractUser):

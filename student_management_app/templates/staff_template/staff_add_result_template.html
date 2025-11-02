@@ -32,7 +32,7 @@
                                 <select class="form-control" name="session_year" id="session_year">
                                     {% for session_year in session_years %}
                                         <option value="{{ session_year.id }}">{{ session_year.session_start_year }}
-                                            to {{ session_year.session_end_year }}</option>
+                                            <b>TO</b> {{ session_year.session_end_year }}</option>
                                     {% endfor %}
                                 </select>
                             </div>

@@ -21,6 +21,7 @@ from django.contrib import admin
 from django.urls import path, include
 
 from student_management_app import views, hodViews, staffViews, studentViews
+from student_management_app.editResultViewClass import EditResultViewClass
 
 urlpatterns = [
                   path('admin/', admin.site.urls),
@@ -106,6 +107,8 @@ urlpatterns = [
                   path('staff_all_notifications', staffViews.staff_all_notifications, name="staff_all_notifications"),
                   path('staff_add_result', staffViews.staff_add_result, name="staff_add_result"),
                   path('save_student_result', staffViews.save_student_result, name="save_student_result"),
+                  path('edit_student_result', EditResultViewClass.as_view(), name="edit_student_result"),
+                  path('fetch_result_student', staffViews.fetch_result_student, name="fetch_result_student"),
 
                   # Student URL Paths
                   path('student_home', studentViews.student_home, name="student_home"),
