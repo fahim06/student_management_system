@@ -4,7 +4,7 @@
 <!--begin::Head-->
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-    <title>Student Management System | Login Page</title>
+    <title>Student Management System | Signup Student</title>
     <!--begin::Accessibility Meta Tags-->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes"/>
     <meta name="color-scheme" content="light dark"/>
@@ -68,29 +68,66 @@
     <!-- /.login-logo -->
     <div class="card">
         <div class="card-body login-card-body">
-            <p class="login-box-msg">Sign in to Student Management System</p>
-            <form action="/doLogin" method="post">
+            <p class="login-box-msg">Sign up as a student to Student Management System</p>
+            <form action="/do_student_signup" method="post" enctype="multipart/form-data">
                 {% csrf_token %}
                 <div class="input-group mb-3">
+                    <input type="text" class="form-control" placeholder="First Name" name="first_name"/>
+                    <div class="input-group-text"><span class="bi bi-envelope"></span></div>
+                </div>
+                <div class="input-group mb-3">
+                    <input type="text" class="form-control" placeholder="Last Name" name="last_name"/>
+                    <div class="input-group-text"><span class="bi bi-envelope"></span></div>
+                </div>
+                <div class="input-group mb-3">
                     <input type="email" class="form-control" placeholder="Email" name="email"/>
+                    <div class="input-group-text"><span class="bi bi-envelope"></span></div>
+                </div>
+                <div class="input-group mb-3">
+                    <input type="text" class="form-control" placeholder="Username" name="username"/>
                     <div class="input-group-text"><span class="bi bi-envelope"></span></div>
                 </div>
                 <div class="input-group mb-3">
                     <input type="password" class="form-control" placeholder="Password" name="password"/>
                     <div class="input-group-text"><span class="bi bi-lock-fill"></span></div>
                 </div>
+                <div class="input-group mb-3">
+                    <input type="text" class="form-control" placeholder="Address" name="address"/>
+                    <div class="input-group-text"><span class="bi bi-lock-fill"></span></div>
+                </div>
+                <div class="input-group mb-3">
+                    <select class="form-control" name="course">
+                        {% for course in courses %}
+                            <option value="{{ course.id }}">{{ courses.course_name }}</option>
+                        {% endfor %}
+                    </select>
+                    <div class="input-group-text"><span class="bi bi-lock-fill"></span></div>
+                </div>
+                <div class="input-group mb-3">
+                    <select class="form-control" name="Sex">
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                    </select>
+                </div>
+                <div class="input-group mb-3">
+                    <input type="file" class="form-control" placeholder="Image" name="profile_pic"/>
+                    <div class="input-group-text"><span class="bi bi-lock-fill"></span></div>
+                </div>
+                <div class="input-group mb-3">
+                    <select class="form-control" name="session_year">
+                        {% for sessionYears in session_years %}
+                            <option value="{{ sessionYears.id }}">{{ sessionYears.session_start_year }}
+                                - {{ sessionYears.session_end_year }}</option>
+                        {% endfor %}
+                    </select>
+                    <div class="input-group-text"><span class="bi bi-lock-fill"></span></div>
+                </div>
                 <!--begin::Row-->
                 <div class="row">
-                    <div class="col-8">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault"/>
-                            <label class="form-check-label" for="flexCheckDefault"> Remember Me </label>
-                        </div>
-                    </div>
                     <!-- /.col -->
                     <div class="col-12 mt-3">
                         <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-primary">Sign In</button>
+                            <button type="submit" class="btn btn-primary">Sign up</button>
                         </div>
                         {% if messages %}
                             <div class="col-12">
@@ -103,6 +140,7 @@
                             </div>
                         {% endif %}
                     </div>
+
                     <!-- /.col -->
                 </div>
                 <!--end::Row-->
@@ -110,15 +148,6 @@
 
             <p class="mb-1 mt-3 text-center">
                 <a href="{% url 'password_reset' %}">I forgot my password</a>
-            </p>
-            <p class="mb-1 mt-3 text-center">
-                <a href="{% url 'admin_signup' %}">Admin Signup for testing</a>
-            </p>
-            <p class="mb-1 mt-3 text-center">
-                <a href="{% url 'staff_signup' %}">Staff Signup for testing</a>
-            </p>
-            <p class="mb-1 mt-3 text-center">
-                <a href="{% url 'student_signup' %}">Student Signup for testing</a>
             </p>
 
             {% include '_messages.html' %}

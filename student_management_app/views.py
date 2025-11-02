@@ -1,8 +1,12 @@
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
+from django.core.files.storage import FileSystemStorage
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
+
+from student_management_app.forms import AdminSignupForm, StaffSignupForm
+from student_management_app.models import CustomUser, Courses, SessionYear
 
 
 # Create your views here.
@@ -72,3 +76,99 @@ def showFirebaseJS(request):
            '});'
 
     return HttpResponse(data, content_type='application/javascript')
+
+
+def admin_signup(request):
+    form = AdminSignupForm()
+    return render(request, 'admin_signup_page.html', {'form': form})
+
+
+def staff_signup(request):
+    form = StaffSignupForm()
+    return render(request, 'staff_signup_page.html', {'form': form})
+
+
+def student_signup(request):
+    courses = Courses.objects.all()
+    session_years = SessionYear.objects.all()
+    return render(request, 'student_signup_page.html', {'courses': courses, 'session_years': session_years})
+
+
+def do_admin_signup(request):
+    if request.method != 'POST':
+        return HttpResponseRedirect(reverse('admin_signup'))
+
+    form = AdminSignupForm(request.POST)
+    if form.is_valid():
+        username = form.cleaned_data.get('username')
+        email = form.cleaned_data.get('email')
+        password = form.cleaned_data.get('password')
+        try:
+            user = CustomUser.objects.create_user(username=username, email=email, password=password, user_type='1')
+            # The user profile (AdminHOD) is created automatically by a signal
+            user.save()
+            messages.success(request, "Successfully Created Admin Account. Please log in.")
+            return HttpResponseRedirect(reverse("show_login"))
+        except Exception as e:
+            messages.error(request, f"Failed to Create Admin Account: {e}")
+            return HttpResponseRedirect(reverse("admin_signup"))
+    else:
+        # Re-render the page with the form containing errors
+        return render(request, 'admin_signup_page.html', {'form': form})
+
+
+def do_staff_signup(request):
+    if request.method != 'POST':
+        return HttpResponseRedirect(reverse('staff_signup'))
+
+    form = StaffSignupForm(request.POST)
+    if form.is_valid():
+        username = form.cleaned_data.get('username')
+        email = form.cleaned_data.get('email')
+        password = form.cleaned_data.get('password')
+        address = form.cleaned_data.get('address')
+        try:
+            user = CustomUser.objects.create_user(username=username, email=email, password=password, user_type='2')
+            user.staff.address = address
+            user.save()
+            messages.success(request, "Successfully Created Staff Account. Please log in.")
+            return HttpResponseRedirect(reverse("show_login"))
+        except Exception as e:
+            messages.error(request, f"Failed to Create Staff Account: {e}")
+            return HttpResponseRedirect(reverse("staff_signup"))
+    else:
+        return render(request, 'staff_signup_page.html', {'form': form})
+
+
+def do_student_signup(request):
+    first_name = request.POST.get("first_name")
+    last_name = request.POST.get("last_name")
+    username = request.POST.get("username")
+    email = request.POST.get("email")
+    password = request.POST.get("password")
+    address = request.POST.get("address")
+    session_year_id = request.POST.get("session_year")
+    course_id = request.POST.get("course")
+    sex = request.POST.get("sex")
+
+    profile_pic = request.FILES['profile_pic']
+    fs = FileSystemStorage()
+    filename = fs.save(profile_pic.name, profile_pic)
+    profile_pic_url = fs.url(filename)
+
+    try:
+        user = CustomUser.objects.create_user(first_name=first_name, last_name=last_name, username=username,
+                                              password=password, email=email, user_type='3')
+        user.student.address = address
+        course_obj = Courses.objects.get(id=course_id)
+        user.student.course_id = course_obj
+        session_year = SessionYear.object.get(id=session_year_id)
+        user.student.session_year_id = session_year
+        user.student.gender = sex
+        user.student.profile_pic = profile_pic_url
+        user.save()
+        messages.success(request, "Successfully Created Student Account")
+        return HttpResponseRedirect(reverse("show_login"))
+    except:
+        messages.error(request, "Failed to Create Student Account")
+        return HttpResponseRedirect(reverse("show_login"))

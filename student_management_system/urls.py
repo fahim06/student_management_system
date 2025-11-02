@@ -24,6 +24,12 @@ from student_management_app import views, hodViews, staffViews, studentViews
 from student_management_app.editResultViewClass import EditResultViewClass
 
 urlpatterns = [
+                  path('admin_signup', views.admin_signup, name="admin_signup"),
+                  path('staff_signup', views.staff_signup, name="staff_signup"),
+                  path('student_signup', views.student_signup, name="student_signup"),
+                  path('do_admin_signup', views.do_admin_signup, name="do_admin_signup"),
+                  path('do_staff_signup', views.do_staff_signup, name="do_staff_signup"),
+                  path('do_student_signup', views.do_student_signup, name="do_student_signup"),
                   path('admin/', admin.site.urls),
                   path('accounts/', include('django.contrib.auth.urls')),
                   path('', views.ShowLoginPage, name="show_login"),

@@ -1,8 +1,10 @@
 from django import forms
+from django.contrib.auth import get_user_model
 from django.forms import ChoiceField
 
 from student_management_app.models import Courses, SessionYear, Subject, Student
 
+User = get_user_model()
 
 class ChoiceNoValidation(ChoiceField):
     def validate(self, value):
@@ -11,6 +13,93 @@ class ChoiceNoValidation(ChoiceField):
 
 class DateInput(forms.DateInput):
     input_type = 'date'
+
+
+class AdminSignupForm(forms.Form):
+    username = forms.CharField(
+        label="Username",
+        max_length=50,
+        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "Username", "autocomplete": "off"})
+    )
+    email = forms.EmailField(
+        label='Email',
+        max_length=50,
+        widget=forms.EmailInput(attrs={"class": "form-control", "placeholder": "Email", "autocomplete": "off"})
+    )
+    password = forms.CharField(
+        label='Password',
+        max_length=50,
+        widget=forms.PasswordInput(attrs={"class": "form-control", "placeholder": "Password"})
+    )
+    password2 = forms.CharField(
+        label='Confirm Password',
+        max_length=50,
+        widget=forms.PasswordInput(attrs={"class": "form-control", "placeholder": "Confirm Password"})
+    )
+
+    def clean_username(self):
+        username = self.cleaned_data.get('username')
+        if User.objects.filter(username=username).exists():
+            raise forms.ValidationError("A user with that username already exists.")
+        return username
+
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if User.objects.filter(email=email).exists():
+            raise forms.ValidationError("A user with this email already exists.")
+        return email
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if cleaned_data.get("password") != cleaned_data.get("password2"):
+            self.add_error('password2', "Passwords do not match.")
+        return cleaned_data
+
+
+class StaffSignupForm(forms.Form):
+    username = forms.CharField(
+        label="Username",
+        max_length=50,
+        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "Username", "autocomplete": "off"})
+    )
+    email = forms.EmailField(
+        label='Email',
+        max_length=50,
+        widget=forms.EmailInput(attrs={"class": "form-control", "placeholder": "Email", "autocomplete": "off"})
+    )
+    password = forms.CharField(
+        label='Password',
+        max_length=50,
+        widget=forms.PasswordInput(attrs={"class": "form-control", "placeholder": "Password"})
+    )
+    password2 = forms.CharField(
+        label='Confirm Password',
+        max_length=50,
+        widget=forms.PasswordInput(attrs={"class": "form-control", "placeholder": "Confirm Password"})
+    )
+    address = forms.CharField(
+        label='Address',
+        max_length=255,
+        widget=forms.Textarea(attrs={"class": "form-control", "placeholder": "Address", "rows": 3})
+    )
+
+    def clean_username(self):
+        username = self.cleaned_data.get('username')
+        if User.objects.filter(username=username).exists():
+            raise forms.ValidationError("A user with that username already exists.")
+        return username
+
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if User.objects.filter(email=email).exists():
+            raise forms.ValidationError("A user with this email already exists.")
+        return email
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if cleaned_data.get("password") != cleaned_data.get("password2"):
+            self.add_error('password2', "Passwords do not match.")
+        return cleaned_data
 
 
 class AddStudentForm(forms.Form):
