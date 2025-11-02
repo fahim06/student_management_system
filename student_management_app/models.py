@@ -151,7 +151,7 @@ class StudentResult(models.Model):
     subject_assignment_marks = models.FloatField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    object = models.Manager()
+    objects = models.Manager()
 
 
 @receiver(post_save, sender=CustomUser)

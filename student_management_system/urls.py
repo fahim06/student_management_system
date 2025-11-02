@@ -126,6 +126,7 @@ urlpatterns = [
                   path('firebase-messaging-sw.js', views.showFirebaseJS, name='show_firebase_js'),
                   path('student_all_notifications', studentViews.student_all_notifications,
                        name="student_all_notifications"),
+                  path('student_view_result', studentViews.student_view_result, name="student_view_result"),
 
               ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) + static(settings.STATIC_URL,
                                                                                          document_root=settings.STATIC_ROOT)

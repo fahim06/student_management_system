@@ -7,7 +7,7 @@ from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 
 from student_management_app.models import Subject, Student, CustomUser, Attendance, AttendanceReport, \
-    LeaveReportStudent, FeedBackStudent, NotificationStudent
+    LeaveReportStudent, FeedBackStudent, NotificationStudent, StudentResult
 
 
 def student_home(request):
@@ -180,4 +180,40 @@ def student_fcmtoken_save(request):
 def student_all_notifications(request):
     student = Student.objects.get(admin=request.user.id)
     notifications = NotificationStudent.objects.filter(student_id=student.id)
-    return render(request, "student_template/student_all_notifications_template.html", {"notifications": notifications})
+    context = {"notifications": notifications, "student": student}
+    return render(request, "student_template/student_all_notifications_template.html", context)
+
+
+def student_view_result(request):
+    student = Student.objects.get(admin=request.user.id)
+    results = StudentResult.objects.filter(student_id=student.id).select_related('subject_id')
+
+    # Process results to add calculated fields
+    for result in results:
+        # Assuming Exam is out of 100 and Assignment is out of 25
+        total_marks = result.subject_exam_marks + result.subject_assignment_marks
+        total_possible = 125  # 100 for exam + 25 for assignment
+
+        result.total_marks = total_marks
+        try:
+            result.percentage = (total_marks / total_possible) * 100
+        except ZeroDivisionError:
+            result.percentage = 0
+
+        # Determine Grade
+        if result.percentage >= 90:
+            result.grade = "A"
+        elif result.percentage >= 80:
+            result.grade = "B"
+        elif result.percentage >= 70:
+            result.grade = "C"
+        elif result.percentage >= 60:
+            result.grade = "D"
+        else:
+            result.grade = "F"
+
+        # Determine Pass/Fail Status (based on exam marks as per original logic)
+        result.status = "Pass" if result.subject_exam_marks >= 40 else "Fail"
+
+    context = {"student_result": results, "student": student}
+    return render(request, "student_template/student_view_result_template.html", context)
