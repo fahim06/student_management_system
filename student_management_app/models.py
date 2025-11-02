@@ -15,6 +15,7 @@ class SessionYear(models.Model):
         """
         return f"{self.session_start_year.strftime('%Y')} to {self.session_end_year.strftime('%Y')}"
 
+
 class CustomUser(AbstractUser):
     user_type_data = ((1, "HOD"), (2, "STAFF"), (3, "STUDENT"))
     user_type = models.CharField(default=1, choices=user_type_data, max_length=10)
@@ -140,6 +141,17 @@ class NotificationStaff(models.Model):
     message = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+
+class StudentResult(models.Model):
+    id = models.AutoField(primary_key=True)
+    student_id = models.ForeignKey(Student, on_delete=models.CASCADE)
+    subject_id = models.ForeignKey(Subject, on_delete=models.CASCADE)
+    subject_exam_marks = models.FloatField(default=0)
+    subject_assignment_marks = models.FloatField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    object = models.Manager()
 
 
 @receiver(post_save, sender=CustomUser)
