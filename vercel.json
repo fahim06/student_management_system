@@ -7,7 +7,8 @@
       "config": {
         "maxLambdaSize": "15mb",
         "runtime": "python3.9",
-        "includeFiles": "student_management_app/static/**"
+        "includeFiles": "student_management_app/static/**",
+        "applyMigrations": true
       }
     }
   ],
