@@ -94,7 +94,8 @@ if DATABASE_URL:
     DATABASES = {
         'default': dj_database_url.config(
             conn_max_age=600,
-            ssl_require=True
+            ssl_require=True,
+            engine='django.db.backends.postgresql'  # Ensure psycopg3 is used
         )
     }
 elif os.getenv('DB_NAME'):
