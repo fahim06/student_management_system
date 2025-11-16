@@ -1,18 +1,27 @@
 {
-  "version": 1,
   "builds": [
     {
       "src": "student_management_system/wsgi.py",
       "use": "@vercel/python",
       "config": {
         "maxLambdaSize": "15mb",
-        "runtime": "python3.9",
-        "includeFiles": "student_management_app/static/**",
-        "applyMigrations": true
+        "runtime": "python3.9"
       }
+    },
+    {
+      "src": "staticfiles_build/static",
+      "use": "@vercel/static"
     }
   ],
   "routes": [
+    {
+      "src": "/static/(.*)",
+      "dest": "/staticfiles_build/static/$1"
+    },
+    {
+      "src": "/media/(.*)",
+      "dest": "/media/$1"
+    },
     {
       "src": "/(.*)",
       "dest": "student_management_system/wsgi.py"
