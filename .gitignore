@@ -1,19 +1,25 @@
 # Byte-compiled / optimized / DLL files
 __pycache__/
+# Python
 *.pyc
-*.pyo
-*.pyd
+__pycache__/
+*.py[cod]
+*$py.class
 
-# Database files
-*.sqlite3
+# Django
+db.sqlite3
+/media
+/staticfiles
+/sent_mails
 
 # IDE files
 .vscode/
 .idea/
 
-# Environment variables
-# This is the most important part for keeping secrets safe!
+# Environment
 .env
+.env.local
+.env.production
 
 # OS
 *.swp
@@ -26,13 +32,9 @@ venv/
 # Ignore user-uploaded files
 /media/
 # Ignore collected static files for deployment
-/static/
 
-# Local settings
-local_settings.py
-
-# Ignore any files or directories specified in .gitignore_global
-.gitignore_global
+# Vercel
+.vercel
 
 # Ignore any files or directories specified in .gitignore_local
 .gitignore_local

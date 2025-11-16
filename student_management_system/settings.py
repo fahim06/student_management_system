@@ -1,5 +1,4 @@
 import os
-from pathlib import Path
 
 import dj_database_url
 from dotenv import load_dotenv
@@ -7,7 +6,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # --- Core Security Settings ---
 # SECURITY WARNING: keep the secret key used in production secret!
@@ -17,13 +16,17 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 # The value from .env is a string 'True' or 'False', so we must compare it.
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
-# It's best practice to manage ALLOWED_HOSTS from the environment.
+# It's the best practice to manage ALLOWED_HOSTS from the environment.
 # Using '*' is insecure. Default to localhost for development.
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '127.0.0.1,localhost').split(',')
 
-# Application definition
+# Add Vercel domain to ALLOWED_HOSTS in production
+if not DEBUG:
+    ALLOWED_HOSTS.append('.vercel.app')
 
+# --- Application Definition ---
 INSTALLED_APPS = [
+    # Django Core Apps
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -31,25 +34,32 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    # Local Apps
-    'student_management_app',
-
     # Third-Party Apps
     'cloudinary_storage',
     'cloudinary',
     'captcha',
+
+    # Local Apps
+    'student_management_app',
 ]
+
+# Conditionally add development-specific apps
+if DEBUG:
+    INSTALLED_APPS.append('whitenoise.runserver_nostatic')
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+
     # WhiteNoise middleware should be placed high up
     'whitenoise.middleware.WhiteNoiseMiddleware',
+
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+
     # Custom middleware for role-based access
     'student_management_app.loginCheckMiddleWare.LoginCheckMiddleWare',
 ]
@@ -59,7 +69,7 @@ ROOT_URLCONF = 'student_management_system.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'student_management_app' / 'templates'],
+        'DIRS': [os.path.join(BASE_DIR, 'student_management_app', 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -78,9 +88,13 @@ WSGI_APPLICATION = 'student_management_system.wsgi.application'
 # individual DB_* variables (for local development), with a final fallback to SQLite.
 DATABASE_URL = os.getenv('DATABASE_URL')
 if DATABASE_URL:
-    # Production configuration from a single URL (e.g., Vercel)
+    # Production configuration from a single URL (e.g., Vercel with external DB)
     DATABASES = {
-        'default': dj_database_url.config(conn_max_age=600, ssl_require=False)
+        'default': dj_database_url.config(
+            default=DATABASE_URL,
+            conn_max_age=600,
+            ssl_require=True
+        )
     }
 elif os.getenv('DB_NAME'):
     # Local development configuration using individual variables from .env
@@ -99,7 +113,7 @@ else:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
+            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
         }
     }
 
@@ -119,13 +133,14 @@ USE_TZ = True
 
 # --- Static Files (CSS, JavaScript, Images) ---
 STATIC_URL = '/static/'
-STATIC_ROOT = BASE_DIR / 'static'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'student_management_app', 'static')]
 
 # --- Media Files (User-uploaded content) ---
 # Using Cloudinary for media storage, so local paths are for fallback.
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
 # --- Default primary key field type ---
@@ -155,3 +170,12 @@ CLOUDINARY_STORAGE = {
     'API_KEY': os.getenv('CLOUDINARY_API_KEY'),
     'API_SECRET': os.getenv('CLOUDINARY_API_SECRET'),
 }
+
+# Security settings for production
+if not DEBUG:
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    X_FRAME_OPTIONS = 'DENY'
