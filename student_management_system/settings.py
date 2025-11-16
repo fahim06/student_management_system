@@ -1,5 +1,4 @@
 import os
-from email.policy import default
 from pathlib import Path
 
 import dj_database_url
@@ -10,16 +9,17 @@ load_dotenv()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# --- Core Security Settings ---
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DEBUG')
+# The value from .env is a string 'True' or 'False', so we must compare it.
+DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = ['*']
-
-# MEDIA_URL = '/media/'
-# MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+# It's best practice to manage ALLOWED_HOSTS from the environment.
+# Using '*' is insecure. Default to localhost for development.
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '127.0.0.1,localhost').split(',')
 
 # Application definition
 
@@ -30,7 +30,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    # Local Apps
     'student_management_app',
+
+    # Third-Party Apps
     'cloudinary_storage',
     'cloudinary',
     'captcha',
@@ -38,12 +42,15 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    # WhiteNoise middleware should be placed high up
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # Custom middleware for role-based access
     'student_management_app.loginCheckMiddleWare.LoginCheckMiddleWare',
 ]
 
@@ -52,7 +59,7 @@ ROOT_URLCONF = 'student_management_system.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': ['student_management_app/templates'],
+        'DIRS': [BASE_DIR / 'student_management_app' / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -66,86 +73,83 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'student_management_system.wsgi.application'
 
-# Database
+# --- Database Configuration ---
+# This logic prioritizes DATABASE_URL (for production) and falls back to
+# individual DB_* variables (for local development), with a final fallback to SQLite.
 DATABASE_URL = os.getenv('DATABASE_URL')
-DATABASES = {
-    # FOR PRODUCTION
-    'default': dj_database_url.config(default=DATABASE_URL, conn_max_age=1800)
-    # FOR DEVELOPMENT
-    # 'default': {
-    #     # FOR SQLITE
-    #     # 'ENGINE': 'django.db.backends.sqlite3',
-    #     # 'NAME': BASE_DIR / 'db.sqlite3',
-    #     # FOR MYSQL
-    #     'ENGINE': os.getenv('DB_ENGINE'),
-    #     'NAME': os.getenv('DB_NAME'),
-    #     'USER': os.getenv('DB_USER'),
-    #     'PASSWORD': os.getenv('DB_PASSWORD'),
-    #     'HOST': os.getenv('DB_HOST'),
-    #     'PORT': os.getenv('DB_PORT'),
-    # }
-}
+if DATABASE_URL:
+    # Production configuration from a single URL (e.g., Vercel)
+    DATABASES = {
+        'default': dj_database_url.config(conn_max_age=600, ssl_require=False)
+    }
+elif os.getenv('DB_NAME'):
+    # Local development configuration using individual variables from .env
+    DATABASES = {
+        'default': {
+            'ENGINE': os.getenv('DB_ENGINE'),
+            'NAME': os.getenv('DB_NAME'),
+            'USER': os.getenv('DB_USER'),
+            'PASSWORD': os.getenv('DB_PASSWORD'),
+            'HOST': os.getenv('DB_HOST'),
+            'PORT': os.getenv('DB_PORT'),
+        }
+    }
+else:
+    # Fallback to SQLite if no database environment variables are set
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
-# Password validation
+# --- Password Validation ---
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
-# Internationalization
+# --- Internationalization ---
 LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = 'UTC'
-
 USE_I18N = True
-
 USE_TZ = True
 
-# Static files (CSS, JavaScript, Images)
+# --- Static Files (CSS, JavaScript, Images) ---
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+STATIC_ROOT = BASE_DIR / 'static'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# Default primary key field type
+# --- Media Files (User-uploaded content) ---
+# Using Cloudinary for media storage, so local paths are for fallback.
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+
+# --- Default primary key field type ---
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# --- Custom Authentication ---
 AUTH_USER_MODEL = "student_management_app.CustomUser"
 AUTHENTICATION_BACKENDS = ['student_management_app.EmailBackEnd.EmailBackEnd']
 
 # --- Email Configuration ---
+# For Development: Prints emails to the console or saves them to a file.
+if DEBUG:
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+else:
+    # For Production: Use a real SMTP service. Store credentials in your .env file.
+    EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', 'django.core.mail.backends.smtp.EmailBackend')
+    EMAIL_HOST = os.getenv('EMAIL_HOST')
+    EMAIL_PORT = int(os.getenv('EMAIL_PORT', 587))
+    EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True') == 'True'
+    EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+    EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+    DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL')
 
-# For Development:
-# Option 1: Console Backend (prints emails to the console)
-# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-
-# Option 2: File-based Backend (saves emails as files) - Your current setup
-# This is great for inspecting the full email content during development.
-EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
-EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'sent_mails')
-
-# For Production:
-# Use a real SMTP service. Store credentials in your .env file, NOT here.
-# Example for a transactional email service like SendGrid or Mailgun:
-
-# EMAIL_BACKEND = os.getenv('EMAIL_BACKEND')
-# EMAIL_HOST = os.getenv('EMAIL_HOST')  # e.g., 'smtp.sendgrid.net'
-# EMAIL_PORT = int(os.getenv('EMAIL_PORT'))
-# EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS')
-# EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')  # e.g., 'apikey' for SendGrid
-# EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
-# DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL')  # e.g., 'noreply@yourdomain.com'
-
-
-DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
-
+# --- Cloudinary Configuration ---
 CLOUDINARY_STORAGE = {
     'CLOUD_NAME': os.getenv('CLOUDINARY_CLOUD_NAME'),
     'API_KEY': os.getenv('CLOUDINARY_API_KEY'),
