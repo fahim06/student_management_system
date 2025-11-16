@@ -21,8 +21,10 @@ DEBUG = os.getenv('DEBUG', 'False') == 'True'
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '127.0.0.1,localhost').split(',')
 
 # Add Vercel domain to ALLOWED_HOSTS in production
-if not DEBUG:
-    ALLOWED_HOSTS.append('.vercel.app')
+VERCEL_URL = os.getenv('VERCEL_URL')
+if VERCEL_URL:
+    # The VERCEL_URL is given without the https:// part
+    ALLOWED_HOSTS.append(VERCEL_URL)
 
 # --- Application Definition ---
 INSTALLED_APPS = [
@@ -91,7 +93,6 @@ if DATABASE_URL:
     # Production configuration from a single URL (e.g., Vercel with external DB)
     DATABASES = {
         'default': dj_database_url.config(
-            default=DATABASE_URL,
             conn_max_age=600,
             ssl_require=True
         )
@@ -133,7 +134,7 @@ USE_TZ = True
 
 # --- Static Files (CSS, JavaScript, Images) ---
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles_build', 'static')
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'student_management_app', 'static')]
 

@@ -9,7 +9,7 @@ __pycache__/
 # Django
 db.sqlite3
 /media
-/staticfiles
+staticfiles_build/
 /sent_mails
 
 # IDE files
@@ -38,4 +38,3 @@ venv/
 
 # Ignore any files or directories specified in .gitignore_local
 .gitignore_local
-
