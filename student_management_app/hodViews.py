@@ -17,7 +17,7 @@ def admin_home(request):
     """
     View for the main admin dashboard. Gathers all necessary data for the
     summary cards and charts.
-    """
+    """    
     # --- 1. Summary Card Statistics ---
     # Simple counts for the info boxes at the top of the page.
 
@@ -26,26 +26,17 @@ def admin_home(request):
     subject_count = Subject.objects.all().count()
     course_count = Courses.objects.all().count()
 
-    # --- 2. Data for Charts ---
-
-    # Chart: "Total subject in each course" & "Total student in each course"
-    # A single query to get subject and student counts grouped by course.
-
+    # --- 2. Data for Course-related Charts ---
     course_data = Courses.objects.annotate(
         subject_count=Count('subject'),
         student_count=Count('student')
     ).values('course_name', 'subject_count', 'student_count')
 
-    # Unpack the data for the template context
-
     course_name_list = [item['course_name'] for item in course_data]
     subject_cont_list = [item['subject_count'] for item in course_data]
     student_count_list_in_course = [item['student_count'] for item in course_data]
 
-    # Chart: "Total Student in Each Subject"
-    # This chart shows the number of students in the *course* that a subject belongs to.
-    # An efficient query to get this data.
-
+    # --- 3. Data for Subject-related Chart ---
     subject_data = Subject.objects.select_related('course').annotate(
         student_count_in_course=Count('course__student')
     ).values('subject_name', 'student_count_in_course')
@@ -53,9 +44,7 @@ def admin_home(request):
     subject_list_for_pie_chart = [item['subject_name'] for item in subject_data]
     student_count_in_subject_for_pie_chart = [item['student_count_in_course'] for item in subject_data]
 
-    # Chart: "Staff Attendance vs. Leave"
-    # Efficiently annotates attendance and leave counts directly onto the Staff queryset.
-
+    # --- 4. Data for Staff Attendance Chart ---
     staff_attendance_data = Staff.objects.select_related('admin').annotate(
         attendance_count=Count('subject__attendance'),
         leave_count=Count('leavereportstaff', filter=Q(leavereportstaff__leave_status=1))
@@ -65,9 +54,7 @@ def admin_home(request):
     attendance_present_list_staff = [item['attendance_count'] for item in staff_attendance_data]
     attendance_absent_list_staff = [item['leave_count'] for item in staff_attendance_data]
 
-    # Chart: "Student Attendance vs. Leave"
-    # Efficiently annotates attendance and leave counts directly onto the Student queryset.
-
+    # --- 5. Data for Student Attendance Chart ---
     student_attendance_data = Student.objects.select_related('admin').annotate(
         present_count=Count('attendancereport', filter=Q(attendancereport__status=True)),
         absent_count=Count('attendancereport', filter=Q(attendancereport__status=False)),
@@ -76,15 +63,12 @@ def admin_home(request):
 
     student_name_list = [item['admin__username'] for item in student_attendance_data]
     attendance_present_list_student = [item['present_count'] for item in student_attendance_data]
-
     # Total "absences" is a sum of unapproved attendance and approved leaves.
-
     attendance_absent_list_student = [item['absent_count'] + item['leave_count'] for item in student_attendance_data]
 
-    # --- 3. Prepare Context and Render Template ---
-
+    # --- 6. Prepare Context and Render Template ---
     context = {
-        # --- Data for Summary Cards ---
+        # Summary Card Data
         "student_count": student_count,
         "staff_count": staff_count,
         "subject_count": subject_count,
@@ -195,7 +179,6 @@ def add_student_save(request):
                 messages.error(request, f"Failed to Add Student: {e}")
                 return HttpResponseRedirect(reverse("manage_student"))
         else:
-            form = AddStudentForm(request.POST)
             messages.error(request, "Please correct the errors below")
             # Re-render the manage_student page with the form containing errors
             return render(request, "hod_template/manage_student_template.html", {"form": form})
@@ -350,7 +333,6 @@ def edit_student_save(request):
             messages.success(request, "Successfully Edited Student")
             return HttpResponseRedirect(reverse("manage_student"))
         else:
-            form = EditStudentForm(request.POST)
             student = Student.objects.get(admin=student_id)
             return render(request, "hod_template/edit_student_template.html",
                           {"form": form, "id": student_id, "username": student.admin.username})
@@ -584,21 +566,17 @@ def admin_profile_save(request):
         first_name = request.POST.get("first_name")
         last_name = request.POST.get("last_name")
         password = request.POST.get("password")
+        profile_pic_file = request.FILES.get('profile_pic')
 
         try:
             customuser = CustomUser.objects.get(id=request.user.id)
             customuser.first_name = first_name
             customuser.last_name = last_name
 
-            # An HOD user does not have a student profile, so we should not try to access it.
-            # The logic for updating a student's profile picture should be in a
-            # separate view accessible only to students.
-            # if request.FILES.get('profile_picture'):
-            #     profile_picture = request.FILES.get("profile_picture")
-            #     fileStorage = FileSystemStorage()
-            #     filename = fileStorage.save(profile_picture.name, profile_picture)
-            #     profile_picture_url = fileStorage.url(filename)
-            #     customuser.student.profile_picture = profile_picture_url
+            admin_profile = customuser.adminhod
+            if profile_pic_file:
+                admin_profile.profile_pic = profile_pic_file
+            admin_profile.save()
 
             if password is not None and password != "":
                 customuser.set_password(password)

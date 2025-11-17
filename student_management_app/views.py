@@ -6,10 +6,6 @@ from django.urls import reverse
 
 
 # Create your views here.
-def ShowDemoPage(request):
-    return render(request, 'demo.html')
-
-
 def ShowLoginPage(request):
     return render(request, 'login_page.html')
 

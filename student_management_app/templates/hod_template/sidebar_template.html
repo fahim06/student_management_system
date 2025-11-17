@@ -45,21 +45,21 @@
                             <a href="{% url 'manage_course' %}"
                                class="nav-link {% if request.resolver_match.url_name == 'manage_course' or request.resolver_match.url_name == 'edit_course' %}active fw-bold{% endif %}">
                                 <i class="nav-icon bi bi-circle"></i>
-                                <p>Manage Course</p>
+                                <p>Courses</p>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a href="{% url 'manage_subject' %}"
                                class="nav-link {% if request.resolver_match.url_name == 'manage_subject' or request.resolver_match.url_name == 'edit_subject' %}active fw-bold{% endif %}">
                                 <i class="nav-icon bi bi-circle"></i>
-                                <p>Manage Subject</p>
+                                <p>Subjects</p>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a href="{% url 'manage_session' %}"
                                class="nav-link {% if request.resolver_match.url_name == 'manage_session' %}active fw-bold{% endif %}">
                                 <i class="nav-icon bi bi-circle"></i>
-                                <p>Manage Session Year</p>
+                                <p>Sessions</p>
                             </a>
                         </li>
                     </ul>

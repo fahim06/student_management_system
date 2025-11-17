@@ -22,6 +22,7 @@ class CustomUser(AbstractUser):
 
 class AdminHOD(models.Model):
     admin = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
+    profile_pic = models.FileField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
