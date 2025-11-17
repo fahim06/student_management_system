@@ -1,7 +1,17 @@
+import os
+
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+
+
+def get_profile_pic_upload_path(instance, filename):
+    """
+    Generates a unique path for profile pictures using the user's username.
+    """
+    ext = filename.split('.')[-1]
+    return os.path.join('./', f'{instance.admin.username}.{ext}')
 
 
 # Create your models here.
@@ -15,6 +25,7 @@ class SessionYear(models.Model):
         """
         return f"{self.session_start_year.strftime('%Y')} to {self.session_end_year.strftime('%Y')}"
 
+
 class CustomUser(AbstractUser):
     user_type_data = ((1, "HOD"), (2, "STAFF"), (3, "STUDENT"))
     user_type = models.CharField(default=1, choices=user_type_data, max_length=10)
@@ -22,7 +33,7 @@ class CustomUser(AbstractUser):
 
 class AdminHOD(models.Model):
     admin = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
-    profile_pic = models.FileField(blank=True, null=True)
+    profile_pic = models.FileField(upload_to=get_profile_pic_upload_path, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -67,7 +78,7 @@ class Subject(models.Model):
 class Student(models.Model):
     admin = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
     gender = models.CharField(max_length=255)
-    profile_picture = models.FileField()
+    profile_picture = models.FileField(upload_to=get_profile_pic_upload_path, blank=True, null=True)
     address = models.TextField()
     course = models.ForeignKey(Courses, on_delete=models.DO_NOTHING, null=True)
     session_year = models.ForeignKey(SessionYear, on_delete=models.CASCADE, null=True)
@@ -152,8 +163,7 @@ def create_user_profile(sender, instance, created, **kwargs):
         elif instance.user_type == '3':
             # Avoid hardcoding IDs. It's better to let them be null and set later.
             # This also prevents errors if Course or SessionYear with ID=1 doesn't exist.
-            Student.objects.create(admin=instance,
-                                   address="", profile_picture="", gender="")
+            Student.objects.create(admin=instance, address="", gender="")
     else:
         # If the user is updated, save the related profile
         try:

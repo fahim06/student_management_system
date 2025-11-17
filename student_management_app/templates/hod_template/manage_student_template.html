@@ -132,10 +132,13 @@
                                         <td>
                                             {% if student.profile_picture %}
                                                 <img src="{{ student.profile_picture.url }}"
-                                                     style="width: 50px; height: 50px; border-radius: 50%;"
-                                                     alt="Profile Image">
+                                                     style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover;"
+                                                     alt="{{ student.admin.first_name }}'s Profile Image">
                                             {% else %}
-                                                No Image
+                                                <span class="d-flex align-items-center justify-content-center"
+                                                      style="width: 50px; height: 50px;">
+                                                    <i class="bi bi-person-circle fs-2 text-secondary"></i>
+                                                </span>
                                             {% endif %}
                                         </td>
                                         <td>{{ student.admin.first_name }} {{ student.admin.last_name }}</td>

@@ -1,7 +1,6 @@
 import json
 
 from django.contrib import messages
-from django.core.files.storage import FileSystemStorage
 from django.db.models import Count, Q
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
@@ -154,24 +153,18 @@ def add_student_save(request):
             course_id = form.cleaned_data["course"]
             sex = form.cleaned_data["sex"]
 
-            # Handle file upload safely
-            profile_picture = request.FILES.get("profile_picture", None)
-            profile_picture_url = ""
-            if profile_picture:
-                fileStorage = FileSystemStorage()
-                filename = fileStorage.save(profile_picture.name, profile_picture)
-                profile_picture_url = fileStorage.url(filename)
+            # Get the uploaded file object from the validated form data
+            profile_picture_file = form.cleaned_data.get("profile_picture")
 
             try:
                 user = CustomUser.objects.create_user(username=username, password=password, email=email,
                                                       first_name=first_name, last_name=last_name, user_type='3')
                 user.student.address = address
-                # Assign the object directly to the model field
                 user.student.course = course_id
-                # Assign the object directly to the model field
                 user.student.session_year = session_year_id
                 user.student.gender = sex
-                user.student.profile_picture = profile_picture_url
+                if profile_picture_file:
+                    user.student.profile_picture = profile_picture_file
                 user.save()
                 messages.success(request, "Successfully Added Student")
                 return HttpResponseRedirect(reverse("manage_student"))
@@ -303,29 +296,26 @@ def edit_student_save(request):
             course_id = form.cleaned_data["course"]
             sex = form.cleaned_data["sex"]
 
-            if request.FILES.get('profile_picture', False):
-                profile_picture = request.FILES.get("profile_picture")
-                fileStorage = FileSystemStorage()
-                filename = fileStorage.save(profile_picture.name, profile_picture)
-                profile_picture_url = fileStorage.url(filename)
-            else:
-                profile_picture_url = None
-
+            # Get the user and student objects
             user = CustomUser.objects.get(id=student_id)
+            student = Student.objects.get(admin=student_id)
+
+            # Update CustomUser fields
             user.first_name = first_name
             user.last_name = last_name
             user.username = username
             user.email = email
             user.save()
 
-            student = Student.objects.get(admin=student_id)
+            # Update Student fields
             student.address = address
             student.session_year = session_year_id
             student.gender = sex
             student.course = course_id
 
-            if profile_picture_url is not None:
-                student.profile_picture = profile_picture_url
+            # Correctly handle the profile picture update from the form's cleaned data
+            if form.cleaned_data.get('profile_picture'):
+                student.profile_picture = form.cleaned_data['profile_picture']
 
             student.save()
             del request.session['student_id']
