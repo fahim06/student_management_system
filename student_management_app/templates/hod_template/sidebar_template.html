@@ -66,27 +66,14 @@
                 </li>
 
                 <!-- STAFF GROUP -->
-                <li class="nav-item {% if request.resolver_match.url_name == 'add_staff' or request.resolver_match.url_name == 'manage_staff' or request.resolver_match.url_name == 'edit_staff' %}menu-open{% endif %}">
-                    <a href="#" class="nav-link">
+                <li class="nav-item">
+                    <a href="{% url 'manage_staff' %}"
+                       class="nav-link {% if request.resolver_match.url_name == 'manage_staff' or request.resolver_match.url_name == 'edit_staff' %}active fw-bold{% endif %}">
                         <i class="nav-icon bi bi-person-badge"></i>
-                        <p>Staff<i class="nav-arrow bi bi-chevron-right"></i></p>
+                        <p>
+                            Staffs
+                        </p>
                     </a>
-                    <ul class="nav nav-treeview">
-                        <li class="nav-item">
-                            <a href="{% url 'add_staff' %}"
-                               class="nav-link {% if request.resolver_match.url_name == 'add_staff' %}active fw-bold{% endif %}">
-                                <i class="nav-icon bi bi-circle"></i>
-                                <p>Add Staff</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="{% url 'manage_staff' %}"
-                               class="nav-link {% if request.resolver_match.url_name == 'manage_staff' or request.resolver_match.url_name == 'edit_staff' %}active fw-bold{% endif %}">
-                                <i class="nav-icon bi bi-circle"></i>
-                                <p>Manage Staff</p>
-                            </a>
-                        </li>
-                    </ul>
                 </li>
 
                 <!-- STUDENT GROUP -->

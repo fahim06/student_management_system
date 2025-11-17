@@ -46,7 +46,7 @@
                                     <label for="staff" class="form-label">Staff</label>
                                     <select class="form-control" name="staff" id="staff" required>
                                         {% for staff in staffs %}
-                                            <option value="{{ staff.id }}"{% if staff.id == subject.staff.id %}
+                                            <option value="{{ staff.id }}"{% if staff.id == subject.staff.admin.id %}
                                                     selected {% endif %}>{{ staff.first_name }} {{ staff.last_name }}</option>
                                         {% endfor %}
                                     </select>

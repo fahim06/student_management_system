@@ -30,7 +30,6 @@ urlpatterns = [
                   path('logout_user', views.logout_user, name="logout"),
                   path('doLogin', views.doLogin, name="login"),
                   path('admin_home', hodViews.admin_home, name="admin_home"),
-                  path('add_staff', hodViews.add_staff, name="add_staff"),
                   path('add_staff_save', hodViews.add_staff_save, name="add_staff_save"),
                   path('add_course_save', hodViews.add_course_save, name="add_course_save"),
                   path('add_student', hodViews.add_student, name="add_student"),

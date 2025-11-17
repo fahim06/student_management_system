@@ -114,10 +114,6 @@ def admin_home(request):
     return render(request, 'hod_template/home_content.html', context)
 
 
-def add_staff(request):
-    return render(request, "hod_template/add_staff_template.html")
-
-
 def add_staff_save(request):
     if request.method != "POST":
         return HttpResponse("Method Not Allowed")
@@ -137,10 +133,10 @@ def add_staff_save(request):
             staff_profile.address = address
             staff_profile.save()
             messages.success(request, "Successfully Added Staff")
-            return HttpResponseRedirect(reverse("add_staff"))
+            return HttpResponseRedirect(reverse("manage_staff"))
         except Exception as e:
             messages.error(request, f"Failed to Add Staff: {e}")
-            return HttpResponseRedirect(reverse("add_staff"))
+            return HttpResponseRedirect(reverse("manage_staff"))
 
 
 def add_course_save(request):
