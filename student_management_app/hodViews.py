@@ -154,11 +154,6 @@ def add_course_save(request):
             return HttpResponseRedirect(reverse("manage_course"))
 
 
-def add_student(request):
-    form = AddStudentForm()
-    return render(request, "hod_template/add_student_template.html", {"form": form})
-
-
 def add_student_save(request):
     if request.method != "POST":
         return HttpResponse("Method Not Allowed")
@@ -195,14 +190,15 @@ def add_student_save(request):
                 user.student.profile_picture = profile_picture_url
                 user.save()
                 messages.success(request, "Successfully Added Student")
-                return HttpResponseRedirect(reverse("add_student"))
+                return HttpResponseRedirect(reverse("manage_student"))
             except Exception as e:
                 messages.error(request, f"Failed to Add Student: {e}")
-                return HttpResponseRedirect(reverse("add_student"))
+                return HttpResponseRedirect(reverse("manage_student"))
         else:
             form = AddStudentForm(request.POST)
             messages.error(request, "Please correct the errors below")
-            return render(request, "hod_template/add_student_template.html", {"form": form})
+            # Re-render the manage_student page with the form containing errors
+            return render(request, "hod_template/manage_student_template.html", {"form": form})
 
 
 def add_subject_save(request):
@@ -232,8 +228,10 @@ def manage_staff(request):
 
 
 def manage_student(request):
-    students = Student.objects.all()
-    return render(request, "hod_template/manage_student_template.html", {"students": students})
+    students = Student.objects.select_related('admin', 'course', 'session_year').all()
+    form = AddStudentForm()
+    return render(request, "hod_template/manage_student_template.html",
+                  {"students": students, "form": form})
 
 
 def manage_course(request):

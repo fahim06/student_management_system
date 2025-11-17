@@ -77,27 +77,14 @@
                 </li>
 
                 <!-- STUDENT GROUP -->
-                <li class="nav-item {% if request.resolver_match.url_name == 'add_student' or request.resolver_match.url_name == 'manage_student' or request.resolver_match.url_name == 'edit_student' %}menu-open{% endif %}">
-                    <a href="#" class="nav-link">
+                <li class="nav-item">
+                    <a href="{% url 'manage_student' %}"
+                       class="nav-link {% if request.resolver_match.url_name == 'manage_student' or request.resolver_match.url_name == 'edit_student' %}active fw-bold{% endif %}">
                         <i class="nav-icon bi bi-people-fill"></i>
-                        <p>Students<i class="nav-arrow bi bi-chevron-right"></i></p>
+                        <p>
+                            Students
+                        </p>
                     </a>
-                    <ul class="nav nav-treeview">
-                        <li class="nav-item">
-                            <a href="{% url 'add_student' %}"
-                               class="nav-link {% if request.resolver_match.url_name == 'add_student' %}active fw-bold{% endif %}">
-                                <i class="nav-icon bi bi-circle"></i>
-                                <p>Add Student</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="{% url 'manage_student' %}"
-                               class="nav-link {% if request.resolver_match.url_name == 'manage_student' or request.resolver_match.url_name == 'edit_student' %}active fw-bold{% endif %}">
-                                <i class="nav-icon bi bi-circle"></i>
-                                <p>Manage Students</p>
-                            </a>
-                        </li>
-                    </ul>
                 </li>
 
                 <li class="nav-item">
