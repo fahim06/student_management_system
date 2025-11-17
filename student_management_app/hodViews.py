@@ -57,7 +57,7 @@ def admin_home(request):
     # Efficiently annotates attendance and leave counts directly onto the Staff queryset.
 
     staff_attendance_data = Staff.objects.select_related('admin').annotate(
-        attendance_count=Count('admin__subject__attendance'),
+        attendance_count=Count('subject__attendance'),
         leave_count=Count('leavereportstaff', filter=Q(leavereportstaff__leave_status=1))
     ).values('admin__username', 'attendance_count', 'leave_count')
 
@@ -143,10 +143,6 @@ def add_staff_save(request):
             return HttpResponseRedirect(reverse("add_staff"))
 
 
-def add_course(request):
-    return render(request, "hod_template/add_course_template.html")
-
-
 def add_course_save(request):
     if request.method != "POST":
         return HttpResponse("Method Not Allowed")
@@ -156,10 +152,10 @@ def add_course_save(request):
             course_model = Courses(course_name=course)
             course_model.save()
             messages.success(request, "Successfully Added Course")
-            return HttpResponseRedirect(reverse("add_course"))
+            return HttpResponseRedirect(reverse("manage_course"))
         except Exception as e:
             messages.error(request, f"Failed to Add Course: {e}")
-            return HttpResponseRedirect(reverse("add_course"))
+            return HttpResponseRedirect(reverse("manage_course"))
 
 
 def add_student(request):
@@ -213,30 +209,25 @@ def add_student_save(request):
             return render(request, "hod_template/add_student_template.html", {"form": form})
 
 
-def add_subject(request):
-    courses = Courses.objects.all()
-    staffs = CustomUser.objects.filter(user_type=2)
-    return render(request, "hod_template/add_subject_template.html", {"staffs": staffs, "courses": courses})
-
-
 def add_subject_save(request):
     if request.method != "POST":
         return HttpResponse("<h2>Method Not Allowed</h2>")
     else:
+        subject_code = request.POST.get("subject_code")
         subject_name = request.POST.get("subject_name")
         course_id = request.POST.get("course")
         course = Courses.objects.get(id=course_id)
         staff_id = request.POST.get("staff")
-        staff = CustomUser.objects.get(id=staff_id)
+        staff = Staff.objects.get(admin=staff_id)
 
         try:
-            subject = Subject(subject_name=subject_name, course=course, staff=staff)
+            subject = Subject(subject_code=subject_code, subject_name=subject_name, course=course, staff=staff)
             subject.save()
             messages.success(request, "Successfully Added Subject")
-            return HttpResponseRedirect(reverse("add_subject"))
+            return HttpResponseRedirect(reverse("manage_subject"))
         except Exception as e:
             messages.error(request, f"Failed to Add Subject: {e}")
-            return HttpResponseRedirect(reverse("add_subject"))
+            return HttpResponseRedirect(reverse("manage_subject"))
 
 
 def manage_staff(request):
@@ -257,11 +248,15 @@ def manage_course(request):
 def manage_subject(request):
     # Use select_related to pre-fetch related Course and Staff (CustomUser) objects.
     # This is much more efficient than fetching them one by one in the template.
-    subjects = Subject.objects.select_related('course', 'staff').all()
-    return render(request, "hod_template/manage_subject_template.html", {"subjects": subjects})
+    # Also fetching courses and staffs for the "Add Subject" form dropdowns.
+    subjects = Subject.objects.select_related('course', 'staff__admin').all()
+    courses = Courses.objects.all()
+    staffs = CustomUser.objects.filter(user_type=2)
+    return render(request, "hod_template/manage_subject_template.html",
+                  {"subjects": subjects, "courses": courses, "staffs": staffs})
 
 
-def edit_staff(request, staff_id):
+def edit_staff(request, staff_id):  # No changes here, just for context
     staff = Staff.objects.get(admin=staff_id)
     return render(request, "hod_template/edit_staff_template.html", {"staff": staff, "id": staff_id})
 
@@ -367,27 +362,30 @@ def edit_student_save(request):
                           {"form": form, "id": student_id, "username": student.admin.username})
 
 
-def edit_subject(request, subject_id):
-    subject = Subject.objects.get(id=subject_id)
+def edit_subject(request, subject_code):
+    subject = Subject.objects.get(subject_code=subject_code)
     courses = Courses.objects.all()
     staffs = CustomUser.objects.filter(user_type=2)
     return render(request, "hod_template/edit_subject_template.html",
-                  {"subject": subject, "staffs": staffs, "courses": courses, "id": subject_id, })
+                  {"subject": subject, "staffs": staffs, "courses": courses})
 
 
 def edit_subject_save(request):
     if request.method != "POST":
         return HttpResponse("<h2>Method Not Allowed</h2>")
     else:
-        subject_id = request.POST.get("subject_id")
+        # The original subject code is used to fetch the subject
+        original_subject_code = request.POST.get("original_subject_code")
+        subject_code = request.POST.get("subject_code")
         subject_name = request.POST.get("subject_name")
         staff_id = request.POST.get("staff")
         course_id = request.POST.get("course")
 
         try:
-            subject = Subject.objects.get(id=subject_id)
+            subject = Subject.objects.get(subject_code=original_subject_code)
+            subject.subject_code = subject_code
             subject.subject_name = subject_name
-            staff = CustomUser.objects.get(id=staff_id)
+            staff = Staff.objects.get(admin=staff_id)
             subject.staff = staff
             course = Courses.objects.get(id=course_id)
             subject.course = course

@@ -35,31 +35,17 @@
                 </li>
 
                 <!-- ACADEMICS GROUP -->
-                <li class="nav-item {% if request.resolver_match.url_name == 'add_course' or request.resolver_match.url_name == 'manage_course' or request.resolver_match.url_name == 'edit_course' or request.resolver_match.url_name == 'add_subject' or request.resolver_match.url_name == 'manage_subject' or request.resolver_match.url_name == 'edit_subject' or request.resolver_match.url_name == 'manage_session' %}menu-open{% endif %}">
+                <li class="nav-item {% if request.resolver_match.url_name == 'manage_course' or request.resolver_match.url_name == 'edit_course' or request.resolver_match.url_name == 'manage_subject' or request.resolver_match.url_name == 'edit_subject' or request.resolver_match.url_name == 'manage_session' %}menu-open{% endif %}">
                     <a href="#" class="nav-link">
                         <i class="nav-icon bi bi-journal-bookmark-fill"></i>
                         <p>Academics<i class="nav-arrow bi bi-chevron-right"></i></p>
                     </a>
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
-                            <a href="{% url 'add_course' %}"
-                               class="nav-link {% if request.resolver_match.url_name == 'add_course' %}active fw-bold{% endif %}">
-                                <i class="nav-icon bi bi-circle"></i>
-                                <p>Add Course</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
                             <a href="{% url 'manage_course' %}"
                                class="nav-link {% if request.resolver_match.url_name == 'manage_course' or request.resolver_match.url_name == 'edit_course' %}active fw-bold{% endif %}">
                                 <i class="nav-icon bi bi-circle"></i>
                                 <p>Manage Course</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="{% url 'add_subject' %}"
-                               class="nav-link {% if request.resolver_match.url_name == 'add_subject' %}active fw-bold{% endif %}">
-                                <i class="nav-icon bi bi-circle"></i>
-                                <p>Add Subject</p>
                             </a>
                         </li>
                         <li class="nav-item">

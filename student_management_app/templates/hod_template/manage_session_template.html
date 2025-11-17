@@ -34,9 +34,12 @@
                                             <div class="input-group">
                                                 <span class="input-group-text"><i
                                                         class="fas fa-calendar-alt"></i></span>
-                                                <input type="date" class="form-control" name="session_start"
-                                                       id="session_start">
+                                                <input type="number" class="form-control" name="session_start"
+                                                       id="session_start" placeholder="E.g., 2024" min="2000" max="2100"
+                                                       required>
                                             </div>
+                                            <small class="form-text text-muted">Enter the starting year of the academic
+                                                session.</small>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
@@ -45,9 +48,12 @@
                                             <div class="input-group">
                                                 <span class="input-group-text"><i
                                                         class="fas fa-calendar-alt"></i></span>
-                                                <input type="date" class="form-control" name="session_end"
-                                                       id="session_end">
+                                                <input type="number" class="form-control" name="session_end"
+                                                       id="session_end" placeholder="E.g., 2025" min="2000" max="2100"
+                                                       required>
                                             </div>
+                                            <small class="form-text text-muted">Enter the ending year of the academic
+                                                session.</small>
                                         </div>
                                     </div>
                                 </div>
@@ -77,8 +83,8 @@
                                 {% for session in sessions %}
                                     <tr>
                                         <td>{{ session.id }}</td>
-                                        <td>{{ session.session_start_year|date:"Y-m-d" }}</td>
-                                        <td>{{ session.session_end_year|date:"Y-m-d" }}</td>
+                                        <td>{{ session.session_start_year|date:"Y" }}</td>
+                                        <td>{{ session.session_end_year|date:"Y" }}</td>
                                     </tr>
                                 {% empty %}
                                     <tr>

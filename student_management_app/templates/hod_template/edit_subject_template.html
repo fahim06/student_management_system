@@ -1,6 +1,6 @@
 {% extends 'hod_template/base_template.html' %}
 {% block page_title %}
-    Edit Subject
+    Edit Subject | {{ subject.subject_code }}
 {% endblock page_title %}
 {% block main_content %}
 
@@ -14,33 +14,43 @@
                     </div>
                     <!--end::Header-->
                     <!--begin::Form-->
-                    <form role="form" action="/edit_subject_save" method="post">
+                    <form role="form" action="{% url 'edit_subject_save' %}" method="post">
                         {% csrf_token %}
                         <!--begin::Body-->
                         <div class="card-body">
-                            <div class="form-group">
-                                <label class="form-label">Subject Name</label>
-                                <input type="text" class="form-control" name="subject_name" placeholder="Enter Subject"
-                                       value="{{ subject.subject_name }}">
-                                <input type="hidden" name="subject_id" value="{{ subject.id }}">
+                            <div class="row">
+                                <div class="col-md-6 form-group">
+                                    <label for="subject_code" class="form-label">Subject Code</label>
+                                    <input type="text" class="form-control" name="subject_code" id="subject_code"
+                                           value="{{ subject.subject_code }}" required>
+                                    <input type="hidden" name="original_subject_code"
+                                           value="{{ subject.subject_code }}">
+                                </div>
+                                <div class="col-md-6 form-group">
+                                    <label for="subject_name" class="form-label">Subject Name</label>
+                                    <input type="text" class="form-control" name="subject_name" id="subject_name"
+                                           placeholder="Enter Subject" value="{{ subject.subject_name }}" required>
+                                </div>
                             </div>
-                            <div class="form-group">
-                                <label class="form-label">Course</label>
-                                <select class="form-control" name="course">
-                                    {% for course in courses %}
-                                        <option value="{{ course.id }}" {% if course.id == subject.course_id.id %}
-                                                selected {% endif %}>{{ course.course_name }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Staff</label>
-                                <select class="form-control" name="staff">
-                                    {% for staff in staffs %}
-                                        <option value="{{ staff.id }}"{% if staff.id == subject.staff_id.id %}
-                                                selected {% endif %}>{{ staff.first_name }} {{ staff.last_name }}</option>
-                                    {% endfor %}
-                                </select>
+                            <div class="row">
+                                <div class="col-md-6 form-group">
+                                    <label for="course" class="form-label">Course</label>
+                                    <select class="form-control" name="course" id="course" required>
+                                        {% for course in courses %}
+                                            <option value="{{ course.id }}" {% if course.id == subject.course.id %}
+                                                    selected {% endif %}>{{ course.course_name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-6 form-group">
+                                    <label for="staff" class="form-label">Staff</label>
+                                    <select class="form-control" name="staff" id="staff" required>
+                                        {% for staff in staffs %}
+                                            <option value="{{ staff.id }}"{% if staff.id == subject.staff.id %}
+                                                    selected {% endif %}>{{ staff.first_name }} {{ staff.last_name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
                             </div>
                         </div>
                         <!--end::Body-->
