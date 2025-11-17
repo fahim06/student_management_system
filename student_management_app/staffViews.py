@@ -18,13 +18,13 @@ def staff_home(request):
     """
     # --- Core Data Fetching ---
     # Get the staff object and all subjects they teach
-    staff_user = Staff.objects.get(admin=request.user)
-    subjects = Subject.objects.filter(staff_id=request.user)
+    staff_user = Staff.objects.select_related('admin').get(admin=request.user)
+    subjects = Subject.objects.filter(staff=staff_user)
 
     # --- Dashboard Card Statistics ---
     subject_count = subjects.count()
     attendance_count = Attendance.objects.filter(subject_id__in=subjects).count()
-    leave_count = LeaveReportStaff.objects.filter(staff_id=staff_user, leave_status=1).count()
+    leave_count = LeaveReportStaff.objects.filter(staff=staff_user, leave_status=1).count()
 
     # Get unique students taught by this staff
     course_ids = subjects.values_list('course_id', flat=True).distinct()
@@ -71,7 +71,8 @@ def staff_home(request):
 
 
 def staff_take_attendance(request):
-    subjects = Subject.objects.filter(staff_id=request.user)
+    staff_user = Staff.objects.get(admin=request.user)
+    subjects = Subject.objects.filter(staff=staff_user)
     session_years = SessionYear.objects.all()
     return render(request, "staff_template/staff_take_attendance_template.html",
                   {"subjects": subjects, "session_years": session_years})
@@ -121,7 +122,8 @@ def save_attendance_data(request):
 
 
 def staff_update_attendance(request):
-    subjects = Subject.objects.filter(staff_id=request.user)
+    staff_user = Staff.objects.get(admin=request.user)
+    subjects = Subject.objects.filter(staff=staff_user)
     session_year_id = SessionYear.objects.all()
     return render(request, "staff_template/staff_update_attendance_template.html",
                   {"subjects": subjects, "session_year_id": session_year_id})
@@ -216,7 +218,7 @@ def staff_feedback_save(request):
     else:
         feedback_message = request.POST.get("feedback_message")
 
-        staff_obj = Staff.objects.get(admin=request.user.id)
+        staff_obj = Staff.objects.get(admin=request.user)
         try:
             feedback = FeedBackStaff(staff_id=staff_obj, feedback=feedback_message, feedback_reply="")
             feedback.save()

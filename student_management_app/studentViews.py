@@ -1,30 +1,34 @@
 import datetime
 
 from django.contrib import messages
+from django.db.models import Count, Q
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 
 from student_management_app.models import Subject, Student, CustomUser, Attendance, AttendanceReport, \
-    LeaveReportStudent, FeedBackStudent, Courses
+    LeaveReportStudent, FeedBackStudent
 
 
 def student_home(request):
-    user = CustomUser.objects.get(id=request.user.id)
-    student = Student.objects.get(admin=user)
+    # Use select_related to efficiently fetch related user, course, and session data in a single query.
+    student = Student.objects.select_related('admin', 'course', 'session_year').get(admin=request.user)
 
-    student_obj = Student.objects.get(admin=request.user.id)
-    attendance_total = AttendanceReport.objects.filter(student_id=student_obj).count()
-    attendance_present = AttendanceReport.objects.filter(student_id=student_obj, status=True).count()
-    attendance_absent = AttendanceReport.objects.filter(student_id=student_obj, status=False).count()
-    course = Courses.objects.get(id=student_obj.course_id.id)
-    subjects = Subject.objects.filter(course_id=course).count()
+    # Use annotations for more efficient counting.
+    attendance_stats = AttendanceReport.objects.filter(student_id=student).aggregate(
+        total=Count('id'),
+        present=Count('id', filter=Q(status=True)),
+        absent=Count('id', filter=Q(status=False))
+    )
+
+    subjects_count = Subject.objects.filter(course=student.course).count()
 
     subject_name = []
     data_present = []
     data_absent = []
-    subject_data = Subject.objects.filter(course_id=student_obj.course_id)
+    subject_data = Subject.objects.filter(course=student.course)
     for subject in subject_data:
+        # This loop can cause N+1 query issues. Consider optimizing if performance is critical.
         attendance = Attendance.objects.filter(subject_id=subject.id)
         attendance_present_count = AttendanceReport.objects.filter(attendance_id__in=attendance, status=True).count()
         attendance_absent_count = AttendanceReport.objects.filter(attendance_id__in=attendance, status=False).count()
@@ -32,9 +36,14 @@ def student_home(request):
         data_present.append(attendance_present_count)
         data_absent.append(attendance_absent_count)
 
-    context = {"total_attendance": attendance_total, "absent_attendance": attendance_absent,
-               "present_attendance": attendance_present, "subjects": subjects, "data1": data_present,
-               "data2": data_absent, "data_name": subject_name, "student": student}
+    context = {
+        "total_attendance": attendance_stats.get('total', 0),
+        "absent_attendance": attendance_stats.get('absent', 0),
+        "present_attendance": attendance_stats.get('present', 0),
+        "subjects": subjects_count,
+        "data1": data_present,
+        "data2": data_absent,
+        "data_name": subject_name, "student": student}
     return render(request, "student_template/student_home_template.html", context)
 
 
