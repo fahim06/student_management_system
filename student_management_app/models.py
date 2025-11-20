@@ -80,7 +80,7 @@ class Student(models.Model):
     gender = models.CharField(max_length=255)
     profile_picture = models.FileField(upload_to=get_profile_pic_upload_path, blank=True, null=True)
     address = models.TextField()
-    course = models.ForeignKey(Courses, on_delete=models.DO_NOTHING, null=True)
+    course = models.ForeignKey(Courses, on_delete=models.SET_NULL, null=True)
     session_year = models.ForeignKey(SessionYear, on_delete=models.CASCADE, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -90,7 +90,7 @@ class Student(models.Model):
 
 
 class Attendance(models.Model):
-    subject = models.ForeignKey(Subject, on_delete=models.DO_NOTHING)
+    subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
     attendance_date = models.DateField()
     created_at = models.DateTimeField(auto_now_add=True)
     session_year = models.ForeignKey(SessionYear, on_delete=models.CASCADE)
@@ -98,7 +98,7 @@ class Attendance(models.Model):
 
 
 class AttendanceReport(models.Model):
-    student = models.ForeignKey(Student, on_delete=models.DO_NOTHING)
+    student = models.ForeignKey(Student, on_delete=models.CASCADE)
     attendance = models.ForeignKey(Attendance, on_delete=models.CASCADE)
     status = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)

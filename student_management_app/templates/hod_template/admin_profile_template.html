@@ -54,7 +54,7 @@
                 <div class="col-md-8">
                     <div class="card card-primary card-outline">
                         <div class="card-header">
-                            <h3 class="card-title"><i class="fas fa-user-edit me-2"></i>Edit Profile Details</h3>
+                            <h3 class="card-title"><i class="bi bi-pencil-square me-2"></i>Edit Profile Details</h3>
                         </div>
                         <form role="form" action="{% url 'admin_profile_save' %}" method="post"
                               enctype="multipart/form-data">
@@ -65,7 +65,7 @@
                                         <div class="form-group mb-3">
                                             <label for="first_name" class="form-label">First Name</label>
                                             <div class="input-group">
-                                                <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                                <span class="input-group-text"><i class="bi bi-person"></i></span>
                                                 <input type="text" class="form-control" id="first_name"
                                                        name="first_name" value="{{ user.first_name }}">
                                             </div>
@@ -75,7 +75,7 @@
                                         <div class="form-group mb-3">
                                             <label for="last_name" class="form-label">Last Name</label>
                                             <div class="input-group">
-                                                <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                                <span class="input-group-text"><i class="bi bi-person"></i></span>
                                                 <input type="text" class="form-control" id="last_name" name="last_name"
                                                        value="{{ user.last_name }}">
                                             </div>
@@ -86,7 +86,7 @@
                                 <div class="form-group mb-3">
                                     <label for="profile_pic" class="form-label">Change Profile Picture</label>
                                     <div class="input-group">
-                                        <span class="input-group-text"><i class="fas fa-image"></i></span>
+                                        <span class="input-group-text"><i class="bi bi-image"></i></span>
                                         <input type="file" class="form-control" id="profile_pic" name="profile_pic">
                                     </div>
                                 </div>
@@ -96,7 +96,7 @@
                                 <div class="form-group mb-3">
                                     <label for="password" class="form-label">Change Password</label>
                                     <div class="input-group">
-                                        <span class="input-group-text"><i class="fas fa-key"></i></span>
+                                        <span class="input-group-text"><i class="bi bi-key-fill"></i></span>
                                         <input type="password" class="form-control" id="password" name="password"
                                                placeholder="Leave blank to keep current password">
                                     </div>
@@ -105,7 +105,7 @@
                                 </div>
                             </div>
                             <div class="card-footer text-end">
-                                <button type="submit" class="btn btn-primary"><i class="fas fa-save me-2"></i>Save
+                                <button type="submit" class="btn btn-primary"><i class="bi bi-save-fill me-2"></i>Save
                                     Changes
                                 </button>
                             </div>
