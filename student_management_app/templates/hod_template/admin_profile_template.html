@@ -31,7 +31,8 @@
                             <div class="text-center mb-3">
                                 <img class="profile-user-img img-fluid img-circle"
                                      src="
-                                             {% if user.adminhod.profile_pic %}{{ user.adminhod.profile_pic.url }}{% else %}{% static 'dist/img/avatar.png' %}{% endif %}"
+
+                                             {% if user.adminhod.profile_pic %}{{ user.adminhod.profile_pic.url }}{% else %}{% endif %}"
                                      alt="User profile picture"
                                      style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover;">
                             </div>

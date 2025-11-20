@@ -107,6 +107,7 @@ def add_staff_save(request):
         email = request.POST.get("email")
         password = request.POST.get("password")
         address = request.POST.get("address")
+        profile_pic = request.FILES.get("profile_pic")
         try:
             user = CustomUser.objects.create_user(username=username, password=password, email=email,
                                                   first_name=first_name, last_name=last_name, user_type='2')
@@ -114,6 +115,8 @@ def add_staff_save(request):
             # We need to fetch that profile, update it, and then save it.
             staff_profile = user.staff
             staff_profile.address = address
+            if profile_pic:
+                staff_profile.profile_pic = profile_pic
             staff_profile.save()
             messages.success(request, "Successfully Added Staff")
             return HttpResponseRedirect(reverse("manage_staff"))
@@ -241,6 +244,7 @@ def edit_staff_save(request):
         email = request.POST.get("email")
         username = request.POST.get("username")
         address = request.POST.get("address")
+        profile_pic = request.FILES.get("profile_pic")
 
         try:
             user = CustomUser.objects.get(id=staff_id)
@@ -252,6 +256,8 @@ def edit_staff_save(request):
 
             staff_model = Staff.objects.get(admin=staff_id)
             staff_model.address = address
+            if profile_pic:
+                staff_model.profile_pic = profile_pic
             staff_model.save()
 
             messages.success(request, "Successfully Edited Staff")

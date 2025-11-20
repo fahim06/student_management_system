@@ -11,7 +11,7 @@ def get_profile_pic_upload_path(instance, filename):
     Generates a unique path for profile pictures using the user's username.
     """
     ext = filename.split('.')[-1]
-    return os.path.join('./', f'{instance.admin.username}.{ext}')
+    return os.path.join('', f'{instance.admin.username}.{ext}')
 
 
 # Create your models here.
@@ -44,6 +44,7 @@ class AdminHOD(models.Model):
 class Staff(models.Model):
     admin = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
     address = models.TextField()
+    profile_pic = models.FileField(upload_to=get_profile_pic_upload_path, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

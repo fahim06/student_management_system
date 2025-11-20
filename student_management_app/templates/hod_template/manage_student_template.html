@@ -133,7 +133,7 @@
                                             {% if student.profile_picture %}
                                                 <img src="{{ student.profile_picture.url }}"
                                                      style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover;"
-                                                     alt="{{ student.admin.first_name }}'s Profile Image">
+                                                     alt="Profile picture for {{ student.admin.first_name }}">
                                             {% else %}
                                                 <span class="d-flex align-items-center justify-content-center"
                                                       style="width: 50px; height: 50px;">
