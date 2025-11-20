@@ -29,12 +29,13 @@
                     <div class="card card-primary card-outline mb-4">
                         <div class="card-body box-profile">
                             <div class="text-center mb-3">
-                                <img class="profile-user-img img-fluid img-circle"
-                                     src="
-
-                                             {% if user.adminhod.profile_pic %}{{ user.adminhod.profile_pic.url }}{% else %}{% endif %}"
-                                     alt="User profile picture"
-                                     style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover;">
+                                {% if user.adminhod.profile_pic %}
+                                    <img class="profile-user-img img-fluid img-circle rounded-circle"
+                                         src="{{ user.adminhod.profile_pic.url }}" alt="User profile picture"
+                                         style="width: 100px; height: 100px; object-fit: cover;">
+                                {% else %}
+                                    <i class="bi bi-person-circle" style="font-size: 100px;"></i>
+                                {% endif %}
                             </div>
                             <h3 class="profile-username text-center">{{ user.first_name }} {{ user.last_name }}</h3>
                             <p class="text-muted text-center">Admin</p>
@@ -60,7 +61,7 @@
                         <form role="form" action="{% url 'admin_profile_save' %}" method="post"
                               enctype="multipart/form-data">
                             {% csrf_token %}
-                            <div class="card-body">
+                            <div class="card-body bg-primary-subtle">
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="form-group mb-3">
@@ -105,9 +106,11 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="card-footer text-end">
-                                <button type="submit" class="btn btn-primary"><i class="bi bi-save-fill me-2"></i>Save
-                                    Changes
+                            <div class="card-footer text-start">
+                                <a href="javascript:history.back()" class="btn btn-secondary"><i
+                                        class="bi bi-arrow-left-circle me-2"></i>Back</a>
+                                <button type="submit" class="btn btn-primary ms-2"><i
+                                        class="bi bi-save-fill me-2"></i>Save Changes
                                 </button>
                             </div>
                         </form>

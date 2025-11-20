@@ -451,7 +451,11 @@ def edit_session_save(request):
 @csrf_exempt
 def check_email_exist(request):
     email = request.POST.get("email")
-    user_obj = CustomUser.objects.filter(email=email).exists()
+    user_id = request.POST.get("user_id")  # Get user_id if it exists
+    query = CustomUser.objects.filter(email=email)
+    if user_id:
+        query = query.exclude(id=user_id)  # Exclude the current user when checking
+    user_obj = query.exists()
     if user_obj:
         return HttpResponse(True)
     else:
@@ -461,7 +465,11 @@ def check_email_exist(request):
 @csrf_exempt
 def check_username_exist(request):
     username = request.POST.get("username")
-    user_obj = CustomUser.objects.filter(username=username).exists()
+    user_id = request.POST.get("user_id")  # Get user_id if it exists
+    query = CustomUser.objects.filter(username=username)
+    if user_id:
+        query = query.exclude(id=user_id)  # Exclude the current user when checking
+    user_obj = query.exists()
     if user_obj:
         return HttpResponse(True)
     else:

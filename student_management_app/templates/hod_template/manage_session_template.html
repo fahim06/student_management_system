@@ -20,13 +20,20 @@
 
             <div class="row">
                 <div class="col-md-12">
-                    <div class="card card-primary card-outline mb-4">
-                        <div class="card-header">
+                    <div class="card card-primary card-outline mb-4 collapsed-card">
+                        <div class="card-header" style="cursor: pointer;" data-lte-toggle="card-collapse">
                             <h3 class="card-title"><i class="bi bi-plus-circle-fill me-2"></i>Add New Session</h3>
+                            <div class="card-tools">
+                                <button type="button" class="btn btn-tool" data-lte-toggle="card-collapse"
+                                        title="Toggle Card">
+                                    <i data-lte-icon="expand" class="bi bi-plus-lg"></i>
+                                    <i data-lte-icon="collapse" class="bi bi-dash-lg"></i>
+                                </button>
+                            </div>
                         </div>
                         <form role="form" action="{% url 'add_session_save' %}" method="post">
                             {% csrf_token %}
-                            <div class="card-body">
+                            <div class="card-body bg-primary-subtle">
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="form-group">
@@ -58,9 +65,11 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="card-footer text-center">
-                                <button type="submit" class="btn btn-primary w-50"><i class="bi bi-save-fill me-2"></i>Add
-                                    Session
+                            <div class="card-footer text-start">
+                                <a href="javascript:history.back()" class="btn btn-secondary"><i
+                                        class="bi bi-arrow-left-circle me-2"></i>Back</a>
+                                <button type="submit" class="btn btn-primary ms-2"><i
+                                        class="bi bi-save-fill me-2"></i>Save Session
                                 </button>
                             </div>
                         </form>

@@ -19,24 +19,22 @@
             {% endif %}
             <div class="row">
                 <div class="col-md-12">
-                    <div class="card card-primary card-outline mb-4">
+                    <div class="card card-primary card-outline mb-4 collapsed-card">
+                        <div class="card-header" style="cursor: pointer;" data-lte-toggle="card-collapse">
+                            <h3 class="card-title"><i class="bi bi-person-plus-fill me-2"></i>Add New Staff
+                            </h3>
+                            <div class="card-tools">
+                                <button type="button" class="btn btn-tool" data-lte-toggle="card-collapse"
+                                        title="Toggle Card">
+                                    <i data-lte-icon="expand" class="bi bi-plus-lg"></i>
+                                    <i data-lte-icon="collapse" class="bi bi-dash-lg"></i>
+                                </button>
+                            </div>
+                        </div>
                         <form role="form" action="{% url 'add_staff_save' %}" method="post"
                               enctype="multipart/form-data">
                             {% csrf_token %}
-                            <div class="card-header">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <h3 class="card-title mb-0"><i class="bi bi-person-plus-fill me-2"></i>Add New Staff
-                                    </h3>
-                                    <div>
-                                        <a href="javascript:history.back()" class="btn btn-secondary btn-sm"><i
-                                                class="bi bi-arrow-left-circle me-2"></i>Back</a>
-                                        <button type="submit" class="btn btn-primary btn-sm ms-2"><i
-                                                class="bi bi-save-fill me-2"></i>Save Staff
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="card-body">
+                            <div class="card-body bg-primary-subtle">
                                 <div class="row">
                                     <div class="col-md-4 form-group">
                                         <label for="first_name" class="form-label">First Name</label>
@@ -97,6 +95,13 @@
                                         </div>
                                     </div>
                                 </div>
+                            </div>
+                            <div class="card-footer text-start">
+                                <a href="javascript:history.back()" class="btn btn-secondary"><i
+                                        class="bi bi-arrow-left-circle me-2"></i>Back</a>
+                                <button type="submit" class="btn btn-primary ms-2"><i
+                                        class="bi bi-save-fill me-2"></i>Save Staff
+                                </button>
                             </div>
                         </form>
                     </div>
@@ -159,3 +164,79 @@
     </section>
 
 {% endblock main_content %}
+
+{% block custom_js %}
+    <script>
+        $(document).ready(function () {
+            // Function to get CSRF token from cookies for secure POST requests
+            function getCookie(name) {
+                let cookieValue = null;
+                if (document.cookie && document.cookie !== '') {
+                    const cookies = document.cookie.split(';');
+                    for (let i = 0; i < cookies.length; i++) {
+                        const cookie = cookies[i].trim();
+                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
+                    }
+                }
+                return cookieValue;
+            }
+
+            const csrftoken = getCookie('csrftoken');
+
+            // Email validation using regex and AJAX for uniqueness
+            $("#email").on("keyup", function () {
+                const email = $(this).val();
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+                $("#email_error").remove(); // Clear previous messages
+
+                if (email.length === 0) return; // Do nothing if empty
+
+                // 1. Check email format with regex
+                if (!emailRegex.test(email)) {
+                    $(this).closest('.input-group').after("<div id='email_error' class='text-danger mt-1' style='font-size: 0.875em;'>Please enter a valid email format.</div>");
+                    return;
+                }
+
+                // 2. Check email existence with AJAX
+                $.ajax({
+                    url: '{% url 'check_email_exist' %}',
+                    type: 'POST',
+                    headers: {'X-CSRFToken': csrftoken},
+                    data: {email: email}
+                }).done(function (response) {
+                    $("#email_error").remove();
+                    if (response === "True") {
+                        $("#email").closest('.input-group').after("<div id='email_error' class='text-danger mt-1' style='font-size: 0.875em;'>Email is already taken.</div>");
+                    } else {
+                        $("#email").closest('.input-group').after("<div id='email_error' class='text-success mt-1' style='font-size: 0.875em;'>Email is available.</div>");
+                    }
+                });
+            });
+
+            // Username uniqueness check using AJAX
+            $("#username").on("keyup", function () {
+                const username = $(this).val();
+                $("#username_error").remove(); // Clear previous messages
+
+                if (username.length > 0) {
+                    $.ajax({
+                        url: '{% url 'check_username_exist' %}',
+                        type: 'POST',
+                        headers: {'X-CSRFToken': csrftoken},
+                        data: {username: username}
+                    }).done(function (response) {
+                        if (response === "True") {
+                            $("#username").closest('.input-group').after("<div id='username_error' class='text-danger mt-1' style='font-size: 0.875em;'>Username is already taken.</div>");
+                        } else {
+                            $("#username").closest('.input-group').after("<div id='username_error' class='text-success mt-1' style='font-size: 0.875em;'>Username is available.</div>");
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+{% endblock custom_js %}

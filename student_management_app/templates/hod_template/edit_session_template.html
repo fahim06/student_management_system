@@ -14,7 +14,7 @@
                         </div>
                         <form role="form" action="{% url 'edit_session_save' %}" method="post">
                             {% csrf_token %}
-                            <div class="card-body">
+                            <div class="card-body bg-primary-subtle">
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="form-group">
@@ -46,9 +46,11 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="card-footer text-center">
-                                <button type="submit" class="btn btn-primary w-50"><i class="bi bi-save-fill me-2"></i>Save
-                                    Changes
+                            <div class="card-footer text-start">
+                                <a href="javascript:history.back()" class="btn btn-secondary">
+                                    <i class="bi bi-arrow-left-circle me-2"></i>Back</a>
+                                <button type="submit" class="btn btn-primary ms-2"><i
+                                        class="bi bi-save-fill me-2"></i>Save Changes
                                 </button>
                             </div>
                         </form>
