@@ -8,7 +8,7 @@
         <div class="container-fluid">
             <div class="row">
                 <div class="col-md-12">
-                    <div class="card card-primary">
+                    <div class="card card-primary card-outline mb-4">
                         <div class="card-header">
                             <h3 class="card-title">Staff Feedback</h3>
                         </div>
@@ -41,12 +41,12 @@
                                                                 data-bs-target="#reply_modal"
                                                                 data-feedback-id="{{ feedback.id }}"
                                                                 data-staff-name="{{ feedback.staff_id.admin.first_name }} {{ feedback.staff_id.admin.last_name }}">
-                                                            <i class="fas fa-reply"></i> Reply
+                                                            <i class="bi bi-reply-fill"></i> Reply
                                                         </button>
                                                     {% else %}
                                                         <p class="text-muted mb-0 text-start">
                                                             <strong class="text-success"><i
-                                                                    class="fas fa-check-circle"></i> Your
+                                                                    class="bi bi-check-circle-fill"></i> Your
                                                                 Reply:</strong>
                                                             <span class="fst-italic d-block pt-1 ps-3">"{{ feedback.feedback_reply }}"</span>
                                                         </p>

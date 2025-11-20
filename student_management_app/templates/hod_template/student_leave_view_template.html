@@ -35,9 +35,13 @@
                                     <td>
                                         {% if leave.leave_status == 0 %}
                                             <a href="{% url 'student_approve_leave' leave_id=leave.id %}"
-                                               class="btn btn-success">Approve</a>
-                                            <a class="btn btn-danger"
-                                               href="{% url 'student_disapprove_leave' leave_id=leave.id %}">Disapprove</a>
+                                               class="btn btn-success btn-sm">
+                                                <i class="bi bi-check-circle-fill"></i> Approve
+                                            </a>
+                                            <a href="{% url 'student_disapprove_leave' leave_id=leave.id %}"
+                                               class="btn btn-danger btn-sm">
+                                                <i class="bi bi-x-circle-fill"></i> Disapprove
+                                            </a>
                                         {% elif leave.leave_status == 1 %}
                                             <button class="btn btn-warning" disabled="disabled">Approved
                                             </button>

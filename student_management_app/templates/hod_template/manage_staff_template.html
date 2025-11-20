@@ -20,57 +20,83 @@
             <div class="row">
                 <div class="col-md-12">
                     <div class="card card-primary card-outline mb-4">
-                        <div class="card-header">
-                            <h3 class="card-title"><i class="bi bi-person-plus-fill me-2"></i>Add New Staff</h3>
-                        </div>
                         <form role="form" action="{% url 'add_staff_save' %}" method="post"
                               enctype="multipart/form-data">
                             {% csrf_token %}
+                            <div class="card-header">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h3 class="card-title mb-0"><i class="bi bi-person-plus-fill me-2"></i>Add New Staff
+                                    </h3>
+                                    <div>
+                                        <a href="javascript:history.back()" class="btn btn-secondary btn-sm"><i
+                                                class="bi bi-arrow-left-circle me-2"></i>Back</a>
+                                        <button type="submit" class="btn btn-primary btn-sm ms-2"><i
+                                                class="bi bi-save-fill me-2"></i>Save Staff
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
                             <div class="card-body">
                                 <div class="row">
                                     <div class="col-md-4 form-group">
                                         <label for="first_name" class="form-label">First Name</label>
-                                        <input type="text" class="form-control" name="first_name" id="first_name"
-                                               placeholder="First Name" required>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="bi bi-person"></i></span>
+                                            <input type="text" class="form-control" name="first_name" id="first_name"
+                                                   placeholder="First Name" required>
+                                        </div>
                                     </div>
                                     <div class="col-md-4 form-group">
                                         <label for="last_name" class="form-label">Last Name</label>
-                                        <input type="text" class="form-control" name="last_name" id="last_name"
-                                               placeholder="Last Name" required>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="bi bi-person"></i></span>
+                                            <input type="text" class="form-control" name="last_name" id="last_name"
+                                                   placeholder="Last Name" required>
+                                        </div>
                                     </div>
                                     <div class="col-md-4 form-group">
                                         <label for="username" class="form-label">Username</label>
-                                        <input type="text" class="form-control" name="username" id="username"
-                                               placeholder="Username" required>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="bi bi-person-vcard"></i></span>
+                                            <input type="text" class="form-control" name="username" id="username"
+                                                   placeholder="Username" required>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="row mt-3">
                                     <div class="col-md-4 form-group">
                                         <label for="email" class="form-label">Email</label>
-                                        <input type="email" class="form-control" name="email" id="email"
-                                               placeholder="Email Address" required>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="bi bi-envelope-fill"></i></span>
+                                            <input type="email" class="form-control" name="email" id="email"
+                                                   placeholder="Email Address" required>
+                                        </div>
                                     </div>
                                     <div class="col-md-4 form-group">
                                         <label for="password" class="form-label">Password</label>
-                                        <input type="password" class="form-control" name="password" id="password"
-                                               placeholder="Password" required>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="bi bi-key-fill"></i></span>
+                                            <input type="password" class="form-control" name="password" id="password"
+                                                   placeholder="Password" required>
+                                        </div>
                                     </div>
                                     <div class="col-md-4 form-group">
                                         <label for="address" class="form-label">Address</label>
-                                        <input type="text" class="form-control" name="address" id="address"
-                                               placeholder="Address" required>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="bi bi-geo-alt-fill"></i></span>
+                                            <input type="text" class="form-control" name="address" id="address"
+                                                   placeholder="Address" required>
+                                        </div>
                                     </div>
-                                    <div class="col-md-4 form-group">
+                                    <div class="col-md-4 form-group mt-3">
                                         <label for="profile_pic" class="form-label">Profile Picture</label>
-                                        <input type="file" class="form-control" name="profile_pic"
-                                               id="profile_pic">
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="bi bi-image"></i></span>
+                                            <input type="file" class="form-control" name="profile_pic"
+                                                   id="profile_pic">
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                            <div class="card-footer text-center">
-                                <button type="submit" class="btn btn-primary w-50"><i class="bi bi-save-fill me-2"></i>Add
-                                    Staff
-                                </button>
                             </div>
                         </form>
                     </div>
@@ -113,7 +139,8 @@
                                         <td>{{ staff.address }}</td>
                                         <td>{{ staff.created_at|date:"Y-m-d" }}</td>
                                         <td><a href="{% url 'edit_staff' staff.admin.id %}"
-                                               class="btn btn-primary btn-sm">Edit</a></td>
+                                               class="btn btn-primary btn-sm">
+                                            <i class="bi bi-pencil-square"></i> Edit</a></td>
                                     </tr>
                                 {% empty %}
                                     <tr>

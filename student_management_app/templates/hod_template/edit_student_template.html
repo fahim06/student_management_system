@@ -19,24 +19,40 @@
             {% endif %}
             <div class="row">
                 <div class="col-md-12">
-                    <div class="card card-primary card-outline mb-4">
-                        <div class="card-header">
-                            <h3 class="card-title"><i class="bi bi-pencil-square me-2"></i>Edit Student Details</h3>
-                        </div>
-                        <form role="form" action="{% url 'edit_student_save' %}" method="post"
-                              enctype="multipart/form-data">
+                    <form role="form" action="{% url 'edit_student_save' %}" method="post"
+                          enctype="multipart/form-data">
+                        <div class="card card-primary card-outline mb-4">
                             {% csrf_token %}
+                            <div class="card-header">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h3 class="card-title mb-0"><i class="bi bi-pencil-square me-2"></i>Edit Student
+                                        Details</h3>
+                                    <div>
+                                        <a href="javascript:history.back()" class="btn btn-secondary btn-sm"><i
+                                                class="bi bi-arrow-left-circle me-2"></i>Back</a>
+                                        <button type="submit" class="btn btn-primary btn-sm ms-2"><i
+                                                class="bi bi-save-fill me-2"></i>Save Changes
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
                             <div class="card-body">
                                 <div class="row">
                                     <div class="col-md-6 form-group">
                                         {{ form.first_name.label_tag }}
-                                        {{ form.first_name }}
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="bi bi-person"></i></span>
+                                            {{ form.first_name }}
+                                        </div>
                                         {% if form.first_name.errors %}
                                             <div class="alert alert-danger mt-1 p-2">{{ form.first_name.errors }}</div>{% endif %}
                                     </div>
                                     <div class="col-md-6 form-group">
                                         {{ form.last_name.label_tag }}
-                                        {{ form.last_name }}
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="bi bi-person"></i></span>
+                                            {{ form.last_name }}
+                                        </div>
                                         {% if form.last_name.errors %}
                                             <div class="alert alert-danger mt-1 p-2">{{ form.last_name.errors }}</div>{% endif %}
                                     </div>
@@ -44,13 +60,19 @@
                                 <div class="row">
                                     <div class="col-md-6 form-group">
                                         {{ form.username.label_tag }}
-                                        {{ form.username }}
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="bi bi-person-vcard"></i></span>
+                                            {{ form.username }}
+                                        </div>
                                         {% if form.username.errors %}
                                             <div class="alert alert-danger mt-1 p-2">{{ form.username.errors }}</div>{% endif %}
                                     </div>
                                     <div class="col-md-6 form-group">
                                         {{ form.email.label_tag }}
-                                        {{ form.email }}
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="bi bi-envelope-fill"></i></span>
+                                            {{ form.email }}
+                                        </div>
                                         {% if form.email.errors %}
                                             <div class="alert alert-danger mt-1 p-2">{{ form.email.errors }}</div>{% endif %}
                                     </div>
@@ -58,7 +80,10 @@
                                 <div class="row">
                                     <div class="col-md-12 form-group">
                                         {{ form.address.label_tag }}
-                                        {{ form.address }}
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="bi bi-geo-alt-fill"></i></span>
+                                            {{ form.address }}
+                                        </div>
                                         {% if form.address.errors %}
                                             <div class="alert alert-danger mt-1 p-2">{{ form.address.errors }}</div>{% endif %}
                                     </div>
@@ -66,13 +91,20 @@
                                 <div class="row">
                                     <div class="col-md-6 form-group">
                                         {{ form.course.label_tag }}
-                                        {{ form.course }}
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i
+                                                    class="bi bi-journal-bookmark-fill"></i></span>
+                                            {{ form.course }}
+                                        </div>
                                         {% if form.course.errors %}
                                             <div class="alert alert-danger mt-1 p-2">{{ form.course.errors }}</div>{% endif %}
                                     </div>
                                     <div class="col-md-6 form-group">
                                         {{ form.session_year_id.label_tag }}
-                                        {{ form.session_year_id }}
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="bi bi-calendar-range"></i></span>
+                                            {{ form.session_year_id }}
+                                        </div>
                                         {% if form.session_year_id.errors %}
                                             <div class="alert alert-danger mt-1 p-2">{{ form.session_year_id.errors }}</div>{% endif %}
                                     </div>
@@ -80,22 +112,23 @@
                                 <div class="row">
                                     <div class="col-md-6 form-group">
                                         {{ form.sex.label_tag }}
-                                        {{ form.sex }}
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="bi bi-gender-ambiguous"></i></span>
+                                            {{ form.sex }}
+                                        </div>
                                         {% if form.sex.errors %}
                                             <div class="alert alert-danger mt-1 p-2">{{ form.sex.errors }}</div>{% endif %}
                                     </div>
                                     <div class="col-md-6 form-group">
                                         {{ form.profile_picture.label_tag }}
-                                        {{ form.profile_picture }}
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="bi bi-image"></i></span>
+                                            {{ form.profile_picture }}
+                                        </div>
                                         {% if form.profile_picture.errors %}
                                             <div class="alert alert-danger mt-1 p-2">{{ form.profile_picture.errors }}</div>{% endif %}
                                     </div>
                                 </div>
-                            </div>
-                            <div class="card-footer text-center">
-                                <button type="submit" class="btn btn-primary w-50"><i class="bi bi-save-fill me-2"></i>Save
-                                    Changes
-                                </button>
                             </div>
                         </form>
                     </div>
