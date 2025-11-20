@@ -72,7 +72,13 @@
     />
     <link rel="icon" href="{% static './favicon.ico' %}"/>
     {% block custom_css %}
-
+        <style>
+            .user-header.bg-gradient-material {
+                /* A modern, Material-3 inspired blue-to-purple gradient */
+                background: linear-gradient(135deg, #5E86F7 0%, #A076F9 100%);
+                color: #fff;
+            }
+        </style>
     {% endblock custom_css %}
 </head>
 <!--end::Head-->
@@ -81,7 +87,7 @@
 <!--begin::App Wrapper-->
 <div class="app-wrapper">
     <!--begin::Header-->
-    <nav class="app-header navbar navbar-expand bg-success-subtle" data-bs-theme="light">
+    <nav class="app-header navbar navbar-expand bg-white border-bottom" data-bs-theme="light">
         <!--begin::Container-->
         <div class="container-fluid">
             <!--begin::Start Navbar Links-->
@@ -93,13 +99,47 @@
                 </li>
             </ul>
             <!--end::Start Navbar Links-->
-            <h4 style="margin-left: 10px;margin-top: 5px">Student Management System | Staff Panel</h4>
             <!--begin::End Navbar Links-->
             <ul class="navbar-nav ms-auto">
-                <li class="nav-item">
-                    <a class="nav-link" data-weight="control-sidebar" data-sidebar="true" href="{% url 'logout' %}">
-                        Logout
+                <!--begin::User Menu Dropdown-->
+                <li class="nav-item dropdown user-menu">
+                    <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
+                        {% if user.staff.profile_pic %}
+                            <img src="{{ user.staff.profile_pic.url }}" class="user-image rounded-circle shadow"
+                                 alt="User Image" style="object-fit: cover;">
+                        {% else %}
+                            <span class="user-image d-flex align-items-center justify-content-center bg-light-subtle rounded-circle shadow"
+                                  style="width: 2.1rem; height: 2.1rem;">
+                                <i class="bi bi-person-fill fs-5 text-primary"></i>
+                            </span>
+                        {% endif %}
+                        <span class="d-none d-md-inline">{{ user.first_name }} {{ user.last_name }}</span>
                     </a>
+                    <ul class="dropdown-menu dropdown-menu-lg dropdown-menu-end">
+                        <!--begin::User Image-->
+                        <li class="user-header bg-gradient-material">
+                            {% if user.staff.profile_pic %}
+                                <img src="{{ user.staff.profile_pic.url }}" class="rounded-circle shadow"
+                                     alt="User Image" style="width: 90px; height: 90px; object-fit: cover;">
+                            {% else %}
+                                <span class="img-circle shadow d-flex align-items-center justify-content-center bg-light-subtle"
+                                      style="width: 90px; height: 90px;"><i
+                                        class="bi bi-person-fill fs-1 text-primary"></i></span>
+                            {% endif %}
+
+                            <p>
+                                {{ user.first_name }} {{ user.last_name }} - Staff
+                                <small>Member since {{ user.date_joined|date:"M. Y" }}</small>
+                            </p>
+                        </li>
+                        <!--end::User Image-->
+                        <!--begin::Menu Footer-->
+                        <li class="user-footer">
+                            <a href="{% url 'staff_profile' %}" class="btn btn-default btn-flat">Profile</a>
+                            <a href="{% url 'logout' %}" class="btn btn-default btn-flat float-end">Sign out</a>
+                        </li>
+                        <!--end::Menu Footer-->
+                    </ul>
                 </li>
             </ul>
             <!--end::End Navbar Links-->
@@ -124,7 +164,7 @@
                     </div>
                     <div class="col-sm-6">
                         <ol class="breadcrumb float-sm-end">
-                            <li class="breadcrumb-item"><a href="{% url 'admin_home' %}">Home</a></li>
+                            <li class="breadcrumb-item"><a href="{% url 'staff_home' %}">Home</a></li>
                         </ol>
                     </div>
                 </div>

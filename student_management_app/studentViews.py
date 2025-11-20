@@ -146,21 +146,25 @@ def student_profile_save(request):
         last_name = request.POST.get("last_name")
         address = request.POST.get("address")
         password = request.POST.get("password")
+        profile_pic = request.FILES.get("profile_pic")
 
         try:
             customuser = CustomUser.objects.get(id=request.user.id)
             customuser.first_name = first_name
             customuser.last_name = last_name
 
-            if password != None and password != "":
+            if password is not None and password != "":
                 customuser.set_password(password)
             customuser.save()
 
             student = Student.objects.get(admin=customuser)
             student.address = address
+            if profile_pic:
+                student.profile_picture = profile_pic
             student.save()
+
             messages.success(request, "Successfully Edited Profile")
             return HttpResponseRedirect(reverse("student_profile"))
         except Exception as e:
             messages.error(request, f"Failed to Edit Profile: {e}")
-        return HttpResponseRedirect(reverse("student_profile"))
+            return HttpResponseRedirect(reverse("student_profile"))

@@ -6,13 +6,17 @@
     <div class="sidebar-brand">
         <!--begin::Brand Link-->
         <a href="{% url 'staff_profile' %}" class="brand-link">
-            <!--begin::Brand Image-->
-            <img
-                    src="{% static './assets/img/AdminLTELogo.png' %}"
-                    alt="AdminLTE Logo"
-                    class="brand-image opacity-75 shadow"
-            />
-            <!--end::Brand Image-->
+            {% if user.staff.profile_pic %}
+                <img src="{{ user.staff.profile_pic.url }}"
+                     style="width: 33px; height: 33px; border-radius: 50%; object-fit: cover;"
+                     alt="{{ user.username }} Profile"
+                     class="brand-image img-circle shadow-sm">
+            {% else %}
+                <span class="brand-image img-circle shadow-sm d-flex align-items-center justify-content-center bg-primary text-white"
+                      style="width: 33px; height: 33px; font-size: 1.1rem;">
+                    {{ user.first_name|first|upper }}
+                </span>
+            {% endif %}
             <!--begin::Brand Text-->
             <span class="brand-text fw-light">{{ user.username }}</span>
             <!--end::Brand Text-->
