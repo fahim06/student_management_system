@@ -23,8 +23,7 @@
                                     <label for="subject_code" class="form-label">Subject Code</label>
                                     <input type="text" class="form-control" name="subject_code" id="subject_code"
                                            value="{{ subject.subject_code }}" required>
-                                    <input type="hidden" name="original_subject_code"
-                                           value="{{ subject.subject_code }}">
+                                    <input type="hidden" name="subject_id" value="{{ subject.id }}">
                                 </div>
                                 <div class="col-md-6 form-group">
                                     <label for="subject_name" class="form-label">Subject Name</label>

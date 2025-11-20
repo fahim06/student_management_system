@@ -96,6 +96,12 @@
                                         <td><a href="{% url 'edit_staff' staff.admin.id %}"
                                                class="btn btn-primary btn-sm">Edit</a></td>
                                     </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="6" class="text-center text-muted py-4">
+                                            No staff members have been added yet.
+                                        </td>
+                                    </tr>
                                 {% endfor %}
                                 </tbody>
                             </table>

@@ -328,8 +328,8 @@ def edit_student_save(request):
                           {"form": form, "id": student_id, "username": student.admin.username})
 
 
-def edit_subject(request, subject_code):
-    subject = Subject.objects.get(subject_code=subject_code)
+def edit_subject(request, subject_id):
+    subject = Subject.objects.get(id=subject_id)
     courses = Courses.objects.all()
     staffs = CustomUser.objects.filter(user_type=2)
     return render(request, "hod_template/edit_subject_template.html",
@@ -340,15 +340,14 @@ def edit_subject_save(request):
     if request.method != "POST":
         return HttpResponse("<h2>Method Not Allowed</h2>")
     else:
-        # The original subject code is used to fetch the subject
-        original_subject_code = request.POST.get("original_subject_code")
+        subject_id = request.POST.get("subject_id")
         subject_code = request.POST.get("subject_code")
         subject_name = request.POST.get("subject_name")
         staff_id = request.POST.get("staff")
         course_id = request.POST.get("course")
 
         try:
-            subject = Subject.objects.get(subject_code=original_subject_code)
+            subject = Subject.objects.get(id=subject_id)
             subject.subject_code = subject_code
             subject.subject_name = subject_name
             staff = Staff.objects.get(admin=staff_id)
@@ -400,12 +399,46 @@ def add_session_save(request):
         session_end_year = request.POST.get("session_end")
 
         try:
-            session_year = SessionYear(session_start_year=session_start_year, session_end_year=session_end_year)
+            # Create date objects for the first day of the given years
+            start_date = f"{session_start_year}-01-01"
+            end_date = f"{session_end_year}-01-01"
+            session_year = SessionYear(session_start_year=start_date, session_end_year=end_date)
             session_year.save()
             messages.success(request, "Successfully Added Session")
             return HttpResponseRedirect(reverse("manage_session"))
         except Exception as e:
             messages.error(request, f"Failed to Add Session: {e}")
+            return HttpResponseRedirect(reverse("manage_session"))
+
+
+def edit_session(request, session_id):
+    session = SessionYear.objects.get(id=session_id)
+    # Pass only the year part to the template
+    context = {
+        "session": session,
+        "session_start_year": session.session_start_year.strftime("%Y"),
+        "session_end_year": session.session_end_year.strftime("%Y")
+    }
+    return render(request, "hod_template/edit_session_template.html", context)
+
+
+def edit_session_save(request):
+    if request.method != "POST":
+        return HttpResponseRedirect(reverse("manage_session"))
+    else:
+        session_id = request.POST.get("session_id")
+        session_start_year = request.POST.get("session_start")
+        session_end_year = request.POST.get("session_end")
+
+        try:
+            session = SessionYear.objects.get(id=session_id)
+            session.session_start_year = f"{session_start_year}-01-01"
+            session.session_end_year = f"{session_end_year}-01-01"
+            session.save()
+            messages.success(request, "Successfully Edited Session")
+            return HttpResponseRedirect(reverse("manage_session"))
+        except Exception as e:
+            messages.error(request, f"Failed to Edit Session: {e}")
             return HttpResponseRedirect(reverse("manage_session"))
 
 

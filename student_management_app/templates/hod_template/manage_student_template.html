@@ -150,6 +150,12 @@
                                         <td><a href="{% url 'edit_student' student.admin.id %}"
                                                class="btn btn-primary btn-sm">Edit</a></td>
                                     </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="9" class="text-center text-muted py-4">
+                                            No students have been added yet.
+                                        </td>
+                                    </tr>
                                 {% endfor %}
                                 </tbody>
                             </table>

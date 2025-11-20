@@ -1,0 +1,61 @@
+{% extends 'hod_template/base_template.html' %}
+{% block page_title %}
+    Edit Session | {{ session_start_year }} - {{ session_end_year }}
+{% endblock page_title %}
+{% block main_content %}
+
+    <section class="content">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="card card-primary card-outline mb-4">
+                        <div class="card-header">
+                            <h3 class="card-title"><i class="bi bi-pencil-square me-2"></i>Edit Session</h3>
+                        </div>
+                        <form role="form" action="{% url 'edit_session_save' %}" method="post">
+                            {% csrf_token %}
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="session_start" class="form-label">Session Start Year</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i
+                                                        class="bi bi-calendar-plus"></i></span>
+                                                <input type="number" class="form-control" name="session_start"
+                                                       id="session_start" value="{{ session_start_year }}"
+                                                       required>
+                                                <input type="hidden" name="session_id" value="{{ session.id }}">
+                                            </div>
+                                            <small class="form-text text-muted">Enter the starting year of the academic
+                                                session.</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="session_end" class="form-label">Session End Year</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i
+                                                        class="bi bi-calendar-check"></i></span>
+                                                <input type="number" class="form-control" name="session_end"
+                                                       id="session_end" value="{{ session_end_year }}" required>
+                                            </div>
+                                            <small class="form-text text-muted">Enter the ending year of the academic
+                                                session.</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-footer text-center">
+                                <button type="submit" class="btn btn-primary w-50"><i class="bi bi-save-fill me-2"></i>Save
+                                    Changes
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+{% endblock main_content %}

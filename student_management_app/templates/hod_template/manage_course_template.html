@@ -65,6 +65,12 @@
                                                class="btn btn-primary btn-sm">Edit</a>
                                         </td>
                                     </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="4" class="text-center text-muted py-4">
+                                            No courses have been added yet.
+                                        </td>
+                                    </tr>
                                 {% endfor %}
                                 </tbody>
                             </table>

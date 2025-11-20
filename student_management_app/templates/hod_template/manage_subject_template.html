@@ -96,8 +96,14 @@
                                             (ID: {{ subject.staff.admin.id }})
                                         </td>
                                         <td>
-                                            <a href="{% url 'edit_subject' subject.subject_code %}"
+                                            <a href="{% url 'edit_subject' subject.id %}"
                                                class="btn btn-primary btn-sm">Edit</a>
+                                        </td>
+                                    </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="5" class="text-center text-muted py-4">
+                                            No subjects have been added yet.
                                         </td>
                                     </tr>
                                 {% endfor %}
