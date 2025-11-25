@@ -40,7 +40,8 @@ jobs:
         python-version: [ "3.10", "3.11", "3.12", "3.13" ]
 
     steps:
-      - uses: actions/checkout@v5
+      - name: Checkout Code
+        uses: actions/checkout@v5
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v6
@@ -100,3 +101,37 @@ jobs:
       - name: Run Tests
         run: |
           python manage.py test
+
+  release:
+    if: ${{ github.event_name == 'push' && github.event.ref == 'refs/heads/main' }}
+    needs: cicd
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+
+    strategy:
+      matrix:
+        python-version: [ "3.13" ]
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v5
+        with:
+          token: ${{ secrets.ACCESS_TOKEN }}
+          fetch-depth: 0
+
+      - name: Set up Git
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git config advice.addIgnoredFile false
+
+      - name: Merge main into dev
+        run: |
+          git fetch origin dev
+          git checkout dev
+          git pull origin dev
+          git merge origin/main -X ours
+          git push origin dev

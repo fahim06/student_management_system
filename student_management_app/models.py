@@ -16,14 +16,23 @@ def get_profile_pic_upload_path(instance, filename):
 
 # Create your models here.
 class SessionYear(models.Model):
+    """
+    Represents an academic session year.
+
+    This model stores the start and end year of an academic session,
+    for example, the 2023-2024 academic year.
+    """
+    # The start date of the academic session.
     session_start_year = models.DateField()
+    # The end date of the academic session.
     session_end_year = models.DateField()
 
     def __str__(self):
         """
-        Return a formatted string for the session year range.
+        Return a formatted string representing the session year range (e.g., "2023 TO 2024").
         """
-        return f"{self.session_start_year.strftime('%Y')} to {self.session_end_year.strftime('%Y')}"
+        return f"{self.session_start_year.strftime('%Y')} <b>TO</b> {self.session_end_year.strftime('%Y')}"
+
 
 
 class CustomUser(AbstractUser):
@@ -32,6 +41,7 @@ class CustomUser(AbstractUser):
 
 
 class AdminHOD(models.Model):
+    id = models.AutoField(primary_key=True)
     admin = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
     profile_pic = models.FileField(upload_to=get_profile_pic_upload_path, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -152,6 +162,17 @@ class NotificationStaff(models.Model):
     message = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+
+class StudentResult(models.Model):
+    id = models.AutoField(primary_key=True)
+    student_id = models.ForeignKey(Student, on_delete=models.CASCADE)
+    subject_id = models.ForeignKey(Subject, on_delete=models.CASCADE)
+    subject_exam_marks = models.FloatField(default=0)
+    subject_assignment_marks = models.FloatField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    objects = models.Manager()
 
 
 @receiver(post_save, sender=CustomUser)

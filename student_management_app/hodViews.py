@@ -1,6 +1,9 @@
 import json
+import os
 
 from django.contrib import messages
+from django.contrib.sites import requests
+from django.core.files.storage import FileSystemStorage
 from django.db.models import Count, Q
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
@@ -9,14 +12,15 @@ from django.views.decorators.csrf import csrf_exempt
 
 from student_management_app.forms import AddStudentForm, EditStudentForm
 from student_management_app.models import CustomUser, Courses, Staff, Subject, Student, SessionYear, FeedBackStudent, \
-    FeedBackStaff, LeaveReportStudent, LeaveReportStaff, Attendance, AttendanceReport
+    FeedBackStaff, LeaveReportStudent, LeaveReportStaff, Attendance, AttendanceReport, NotificationStudent, \
+    NotificationStaff
 
 
 def admin_home(request):
     """
     View for the main admin dashboard. Gathers all necessary data for the
     summary cards and charts.
-    """    
+    """
     # --- 1. Summary Card Statistics ---
     # Simple counts for the info boxes at the top of the page.
 
@@ -623,3 +627,59 @@ def admin_profile_save(request):
         except Exception as e:
             messages.error(request, f"Failed to Edit Profile: {e}")
             return HttpResponseRedirect(reverse("admin_profile"))
+
+
+def admin_send_notification_student(request):
+    students = Student.objects.all()
+    return render(request, "hod_template/student_notification_template.html", {"students": students})
+
+
+def admin_send_notification_staff(request):
+    staffs = Staff.objects.all()
+    return render(request, "hod_template/staff_notification_template.html", {"staffs": staffs})
+
+
+@csrf_exempt
+def send_student_notification(request):
+    id = request.POST.get('id')
+    message = request.POST.get('message')
+    student = Student.objects.get(admin=id)
+    token = student.fcm_token
+    url = "https://fcm.googleapis.com/fcm/send"
+    body = {
+        "to": token,
+        "notification": {
+            "title": "Student management system",
+            "body": message
+        }
+
+    }
+    headers = {"Content-Type": "application/json", "Authorization": "key=" + os.getenv('FCM_KEY')}
+    data = requests.post(url, data=json.dumps(body), headers=headers)
+    notification = NotificationStudent(student_id=student, message=message)
+    notification.save()
+    print(data.text)
+    return HttpResponse("True")
+
+
+@csrf_exempt
+def send_staff_notification(request):
+    id = request.POST.get('id')
+    message = request.POST.get('message')
+    staff = Staff.objects.get(admin=id)
+    token = staff.fcm_token
+    url = "https://fcm.googleapis.com/fcm/send"
+    body = {
+        "to": token,
+        "notification": {
+            "title": "Student management system",
+            "body": message
+        }
+
+    }
+    headers = {"Content-Type": "application/json", "Authorization": "key=" + os.getenv('FCM_KEY')}
+    data = requests.post(url, data=json.dumps(body), headers=headers)
+    notification = NotificationStaff(staff_id=staff, message=message)
+    notification.save()
+    print(data.text)
+    return HttpResponse("True")

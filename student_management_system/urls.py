@@ -21,8 +21,15 @@ from django.contrib import admin
 from django.urls import path, include
 
 from student_management_app import views, hodViews, staffViews, studentViews
+from student_management_app.editResultViewClass import EditResultViewClass
 
 urlpatterns = [
+                  path('admin_signup', views.admin_signup, name="admin_signup"),
+                  path('staff_signup', views.staff_signup, name="staff_signup"),
+                  path('student_signup', views.student_signup, name="student_signup"),
+                  path('do_admin_signup', views.do_admin_signup, name="do_admin_signup"),
+                  path('do_staff_signup', views.do_staff_signup, name="do_staff_signup"),
+                  path('do_student_signup', views.do_student_signup, name="do_student_signup"),
                   path('admin/', admin.site.urls),
                   path('accounts/', include('django.contrib.auth.urls')),
                   path('', views.ShowLoginPage, name="show_login"),
@@ -75,6 +82,14 @@ urlpatterns = [
                        name="admin_get_student_attendance"),
                   path('admin_profile', hodViews.admin_profile, name="admin_profile"),
                   path('admin_profile_save', hodViews.admin_profile_save, name="admin_profile_save"),
+                  path('admin_send_notification_staff', hodViews.admin_send_notification_staff,
+                       name="admin_send_notification_staff"),
+                  path('admin_send_notification_student', hodViews.admin_send_notification_student,
+                       name="admin_send_notification_student"),
+                  path('send_student_notification', hodViews.send_student_notification,
+                       name="send_student_notification"),
+                  path('send_staff_notification', hodViews.send_staff_notification,
+                       name="send_staff_notification"),
 
                   # Staff URL Paths
                   path('staff_home', staffViews.staff_home, name="staff_home"),
@@ -92,6 +107,12 @@ urlpatterns = [
                   path('staff_feedback_save', staffViews.staff_feedback_save, name="staff_feedback_save"),
                   path('staff_profile', staffViews.staff_profile, name="staff_profile"),
                   path('staff_profile_save', staffViews.staff_profile_save, name="staff_profile_save"),
+                  path('staff_fcmtoken_save', staffViews.staff_fcmtoken_save, name="staff_fcmtoken_save"),
+                  path('staff_all_notifications', staffViews.staff_all_notifications, name="staff_all_notifications"),
+                  path('staff_add_result', staffViews.staff_add_result, name="staff_add_result"),
+                  path('save_student_result', staffViews.save_student_result, name="save_student_result"),
+                  path('edit_student_result', EditResultViewClass.as_view(), name="edit_student_result"),
+                  path('fetch_result_student', staffViews.fetch_result_student, name="fetch_result_student"),
 
                   # Student URL Paths
                   path('student_home', studentViews.student_home, name="student_home"),
@@ -105,6 +126,11 @@ urlpatterns = [
                   path('student_feedback_save', studentViews.student_feedback_save, name="student_feedback_save"),
                   path('student_profile', studentViews.student_profile, name="student_profile"),
                   path('student_profile_save', studentViews.student_profile_save, name="student_profile_save"),
+                  path('student_fcmtoken_save', studentViews.student_fcmtoken_save, name="student_fcmtoken_save"),
+                  path('firebase-messaging-sw.js', views.showFirebaseJS, name='show_firebase_js'),
+                  path('student_all_notifications', studentViews.student_all_notifications,
+                       name="student_all_notifications"),
+                  path('student_view_result', studentViews.student_view_result, name="student_view_result"),
 
               ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) + static(settings.STATIC_URL,
                                                                                          document_root=settings.STATIC_ROOT)

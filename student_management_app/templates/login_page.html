@@ -55,6 +55,7 @@
     <!--begin::Required Plugin(AdminLTE)-->
     <link rel="stylesheet" href="{% static 'css/adminlte.css' %}"/>
     <!--end::Required Plugin(AdminLTE)-->
+    <link rel="icon" href="{% static './favicon.ico' %}"/>
 </head>
 <!--end::Head-->
 <!--begin::Body-->
@@ -111,6 +112,17 @@
             <p class="mb-1 mt-3 text-center">
                 <a href="{% url 'password_reset' %}">I forgot my password</a>
             </p>
+            <p class="mb-1 mt-3 text-center">
+                <a href="{% url 'admin_signup' %}">Admin Signup for testing</a>
+            </p>
+            <p class="mb-1 mt-3 text-center">
+                <a href="{% url 'staff_signup' %}">Staff Signup for testing</a>
+            </p>
+            <p class="mb-1 mt-3 text-center">
+                <a href="{% url 'student_signup' %}">Student Signup for testing</a>
+            </p>
+
+            {% include '_messages.html' %}
         </div>
         <!-- /.login-card-body -->
     </div>
