@@ -1,12 +1,13 @@
 import datetime
 
 from django.contrib import messages
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render
 from django.urls import reverse
+from django.views.decorators.csrf import csrf_exempt
 
 from student_management_app.models import Subject, Student, CustomUser, Attendance, AttendanceReport, \
-    LeaveReportStudent, FeedBackStudent, Courses
+    LeaveReportStudent, FeedBackStudent, NotificationStudent, StudentResult
 
 
 def student_home(request):
@@ -17,23 +18,29 @@ def student_home(request):
     attendance_total = AttendanceReport.objects.filter(student_id=student_obj).count()
     attendance_present = AttendanceReport.objects.filter(student_id=student_obj, status=True).count()
     attendance_absent = AttendanceReport.objects.filter(student_id=student_obj, status=False).count()
-    course = Courses.objects.get(id=student_obj.course_id.id)
-    subjects = Subject.objects.filter(course_id=course).count()
 
+    # Initialize data for charts and subject counts
     subject_name = []
     data_present = []
     data_absent = []
-    subject_data = Subject.objects.filter(course_id=student_obj.course_id)
-    for subject in subject_data:
-        attendance = Attendance.objects.filter(subject_id=subject.id)
-        attendance_present_count = AttendanceReport.objects.filter(attendance_id__in=attendance, status=True).count()
-        attendance_absent_count = AttendanceReport.objects.filter(attendance_id__in=attendance, status=False).count()
-        subject_name.append(subject.subject_name)
-        data_present.append(attendance_present_count)
-        data_absent.append(attendance_absent_count)
+    subjects_count = 0
+
+    # Check if the student is assigned to a course to prevent the error
+    if student_obj.course_id:
+        subjects_count = Subject.objects.filter(course_id=student_obj.course_id).count()
+        subject_data = Subject.objects.filter(course_id=student_obj.course_id)
+        for subject in subject_data:
+            attendance = Attendance.objects.filter(subject_id=subject.id)
+            attendance_present_count = AttendanceReport.objects.filter(attendance_id__in=attendance,
+                                                                       student_id=student_obj, status=True).count()
+            attendance_absent_count = AttendanceReport.objects.filter(attendance_id__in=attendance,
+                                                                      student_id=student_obj, status=False).count()
+            subject_name.append(subject.subject_name)
+            data_present.append(attendance_present_count)
+            data_absent.append(attendance_absent_count)
 
     context = {"total_attendance": attendance_total, "absent_attendance": attendance_absent,
-               "present_attendance": attendance_present, "subjects": subjects, "data1": data_present,
+               "present_attendance": attendance_present, "subjects": subjects_count, "data1": data_present,
                "data2": data_absent, "data_name": subject_name, "student": student}
     return render(request, "student_template/student_home_template.html", context)
 
@@ -155,3 +162,58 @@ def student_profile_save(request):
         except Exception as e:
             messages.error(request, f"Failed to Edit Profile: {e}")
         return HttpResponseRedirect(reverse("student_profile"))
+
+
+@csrf_exempt
+def student_fcmtoken_save(request):
+    token = request.POST.get("token")
+
+    try:
+        student = Student.objects.get(admin=request.user.id)
+        student.fcm_token = token
+        student.save()
+        return HttpResponse("OK")
+    except:
+        return HttpResponse("Error")
+
+
+def student_all_notifications(request):
+    student = Student.objects.get(admin=request.user.id)
+    notifications = NotificationStudent.objects.filter(student_id=student.id)
+    context = {"notifications": notifications, "student": student}
+    return render(request, "student_template/student_all_notifications_template.html", context)
+
+
+def student_view_result(request):
+    student = Student.objects.get(admin=request.user.id)
+    results = StudentResult.objects.filter(student_id=student.id).select_related('subject_id')
+
+    # Process results to add calculated fields
+    for result in results:
+        # Assuming Exam is out of 100 and Assignment is out of 25
+        total_marks = result.subject_exam_marks + result.subject_assignment_marks
+        total_possible = 125  # 100 for exam + 25 for assignment
+
+        result.total_marks = total_marks
+        try:
+            result.percentage = (total_marks / total_possible) * 100
+        except ZeroDivisionError:
+            result.percentage = 0
+
+        # Determine Grade
+        if result.percentage >= 90:
+            result.grade = "A"
+        elif result.percentage >= 80:
+            result.grade = "B"
+        elif result.percentage >= 70:
+            result.grade = "C"
+        elif result.percentage >= 60:
+            result.grade = "D"
+        else:
+            result.grade = "F"
+
+        # Determine Pass/Fail Status (based on exam marks as per original logic)
+        result.status = "Pass" if result.subject_exam_marks >= 40 else "Fail"
+
+    context = {"student_result": results, "student": student}
+    return render(request, "student_template/student_view_result_template.html", context)

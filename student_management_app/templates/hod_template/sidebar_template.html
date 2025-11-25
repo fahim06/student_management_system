@@ -185,6 +185,29 @@
                     </ul>
                 </li>
 
+                <!-- NOTIFICATION GROUP -->
+                <li class="nav-item {% if request.resolver_match.url_name == 'admin_send_notification_staff' or request.resolver_match.url_name == 'admin_send_notification_student' %}menu-open{% endif %}">
+                    <a href="#" class="nav-link">
+                        <i class="nav-icon bi bi-bell-fill"></i>
+                        <p>Notification<i class="nav-arrow bi bi-chevron-right"></i></p>
+                    </a>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item">
+                            <a href="{% url 'admin_send_notification_staff' %}"
+                               class="nav-link {% if request.resolver_match.url_name == 'admin_send_notification_staff' %}active fw-bold{% endif %}">
+                                <i class="nav-icon bi bi-circle"></i>
+                                <p>Send Staff Notification</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{% url 'admin_send_notification_student' %}"
+                               class="nav-link {% if request.resolver_match.url_name == 'admin_send_notification_student' %}active fw-bold{% endif %}">
+                                <i class="nav-icon bi bi-circle"></i>
+                                <p>Send Student Notification</p>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
             </ul>
         </nav>
     </div>

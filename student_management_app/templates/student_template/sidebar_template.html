@@ -45,7 +45,7 @@
                 <li class="nav-item">
                     {% url 'student_view_attendance' as student_view_attendance_url %}
                     <a href="{{ student_view_attendance_url }}" class="nav-link
-                            {% if request.path == student_view_attendance_url or 'attendance' in request.path %} active {% endif %}">
+                            {% if request.path == student_view_attendance_url or request.resolver_match.url_name == 'student_view_attendance_post' %} active {% endif %}">
                         <i class="nav-icon bi bi-calendar-check"></i>
                         <p>
                             View Attendance
@@ -75,8 +75,21 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    {# The URL name 'student_notifications' would need to be created in your urls.py #}
-                    <a href="#" class="nav-link">
+                    {# The URL name 'student_feedback' would need to be created in your urls.py #}
+                    {% url 'student_view_result' as student_view_result_url %}
+                    <a href="{{ student_view_result_url }}" class="nav-link
+                            {% if request.path == student_view_result_url %} active {% endif %}">
+                        <i class="nav-icon bi bi-clipboard2-data-fill"></i>
+                        <p>
+                            Result
+                        </p>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    {% url 'student_all_notifications' as student_all_notifications_url %}
+                    <a href="{{ student_all_notifications_url }}" class="nav-link
+                            {% if request.path == student_all_notifications_url %} active {% endif %}"
+                    >
                         <i class="nav-icon bi bi-bell"></i>
                         <p>
                             Notifications

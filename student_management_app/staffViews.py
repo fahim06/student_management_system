@@ -9,7 +9,7 @@ from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 
 from student_management_app.models import Subject, SessionYear, Student, Attendance, AttendanceReport, Staff, \
-    LeaveReportStaff, FeedBackStaff, CustomUser
+    LeaveReportStaff, FeedBackStaff, CustomUser, NotificationStaff, StudentResult
 
 
 def staff_home(request):
@@ -84,7 +84,7 @@ def get_students(request):
 
     subject = Subject.objects.get(id=subject_id)
     session_model = SessionYear.objects.get(id=session_year)
-    students = Student.objects.filter(course_id=subject.course_id, session_year_id=session_model)
+    students = Student.objects.filter(course_id=subject.course_id, session_year=session_model)
     student_data = serializers.serialize("python", students)
     list_data = []
 
@@ -227,10 +227,6 @@ def staff_feedback_save(request):
             return HttpResponseRedirect(reverse("staff_feedback"))
 
 
-def staff_add_result(request):
-    pass
-
-
 def staff_profile(request):
     user = CustomUser.objects.get(id=request.user.id)
     staff = Staff.objects.get(admin=user)
@@ -263,3 +259,74 @@ def staff_profile_save(request):
         except Exception as e:
             messages.error(request, f"Failed to Edit Profile: {e}")
         return HttpResponseRedirect(reverse("staff_profile"))
+
+
+@csrf_exempt
+def staff_fcmtoken_save(request):
+    token = request.POST.get("token")
+
+    try:
+        staff = Staff.objects.get(admin=request.user.id)
+        staff.fcm_token = token
+        staff.save()
+        return HttpResponse("OK")
+    except:
+        return HttpResponse("Error")
+
+
+def staff_all_notifications(request):
+    staff = Staff.objects.get(admin=request.user.id)
+    notifications = NotificationStaff.objects.filter(staff_id=staff.id)
+    return render(request, "staff_template/staff_all_notifications_template.html", {"notifications": notifications})
+
+
+def staff_add_result(request):
+    # Fetch subjects assigned to the currently logged-in staff member
+    subjects = Subject.objects.filter(staff_id=request.user.id)
+    session_years = SessionYear.objects.all()
+    return render(request, "staff_template/staff_add_result_template.html",
+                  {"subjects": subjects, "session_years": session_years})
+
+
+def save_student_result(request):
+    if request.method != "POST":
+        return HttpResponseRedirect(reverse("staff_add_result"))
+    student_admin_id = request.POST.get("student_list")
+    assignment_marks = request.POST.get("assignment_marks")
+    exam_marks = request.POST.get("exam_marks")
+    subject_id = request.POST.get("subject")
+
+    student_obj = Student.objects.get(admin=student_admin_id)
+    subject_obj = Subject.objects.get(id=subject_id)
+    try:
+        check_exist = StudentResult.object.filter(subject_id=subject_obj, student_id=student_obj).exists()
+        if check_exist:
+            result = StudentResult.object.get(subject_id=subject_obj, student_id=student_obj)
+            result.subject_assignment_marks = assignment_marks
+            result.subject_exam_marks = exam_marks
+            result.save()
+            messages.success(request, "Successfully Updated Result")
+            return HttpResponseRedirect(reverse("staff_add_result"))
+        else:
+            result = StudentResult(student_id=student_obj, subject_id=subject_obj, subject_exam_marks=exam_marks,
+                                   subject_assignment_marks=assignment_marks)
+            result.save()
+            messages.success(request, "Successfully Added Result")
+            return HttpResponseRedirect(reverse("staff_add_result"))
+    except Exception as e:
+        messages.error(request, f"Failed to Add Result: {e}")
+
+
+@csrf_exempt
+def fetch_result_student(request):
+    subbject_id = request.POST.get('subject_id')
+    student_id = request.POST.get('student_id')
+    # try:
+    result = StudentResult.objects.filte(subject_id=subbject_id, student_id=student_id).exists()
+    if result:
+        result = StudentResult.objects.get(subject_id=subbject_id, student_id=student_id)
+        result_data = {'assign_marks': result.subject_assignment_marks, 'exam_marks': result.subject_exam_marks}
+        return JsonResponse(json.dumps(result_data), safe=False)
+    else:
+        return JsonResponse(json.dumps("False"), safe=False)
+# except Exception as e:

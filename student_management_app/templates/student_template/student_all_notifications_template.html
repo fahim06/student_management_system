@@ -1,0 +1,56 @@
+{% extends 'student_template/base_template.html' %}
+{% block page_title %}
+    My Notifications
+{% endblock page_title %}
+{% block main_content %}
+
+    <section class="content">
+        <div class="container-fluid">
+            {% if messages %}
+                <div class="row">
+                    <div class="col-12">
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} text-center" role="alert">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+
+            <div class="row">
+                <div class="col-12">
+                    <div class="card card-primary card-outline">
+                        <div class="card-header">
+                            <h3 class="card-title"><i class="bi bi-bell-fill me-2"></i>All Notifications</h3>
+                        </div>
+                        <!-- /.card-header -->
+                        <div class="card-body p-0">
+                            {% if notifications %}
+                                <div class="list-group list-group-flush">
+                                    {% for notification in notifications %}
+                                        <div class="list-group-item">
+                                            <div class="d-flex w-100 justify-content-between">
+                                                <p class="mb-1"><i
+                                                        class="bi bi-info-circle-fill text-primary me-2"></i>{{ notification.message }}
+                                                </p>
+                                                <small class="text-muted">{{ notification.created_at|timesince }}
+                                                    ago</small>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="alert alert-info m-3 text-center">
+                                    You have no notifications.
+                                </div>
+                            {% endif %}
+                        </div>
+                        <!-- /.card-body -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+{% endblock main_content %}

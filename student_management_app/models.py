@@ -6,14 +6,23 @@ from django.dispatch import receiver
 
 # Create your models here.
 class SessionYear(models.Model):
+    """
+    Represents an academic session year.
+
+    This model stores the start and end year of an academic session,
+    for example, the 2023-2024 academic year.
+    """
+    # The start date of the academic session.
     session_start_year = models.DateField()
+    # The end date of the academic session.
     session_end_year = models.DateField()
 
     def __str__(self):
         """
-        Return a formatted string for the session year range.
+        Return a formatted string representing the session year range (e.g., "2023 TO 2024").
         """
-        return f"{self.session_start_year.strftime('%Y')} to {self.session_end_year.strftime('%Y')}"
+        return f"{self.session_start_year.strftime('%Y')} <b>TO</b> {self.session_end_year.strftime('%Y')}"
+
 
 class CustomUser(AbstractUser):
     user_type_data = ((1, "HOD"), (2, "STAFF"), (3, "STUDENT"))
@@ -21,6 +30,7 @@ class CustomUser(AbstractUser):
 
 
 class AdminHOD(models.Model):
+    id = models.AutoField(primary_key=True)
     admin = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -30,8 +40,10 @@ class AdminHOD(models.Model):
 
 
 class Staff(models.Model):
+    id = models.AutoField(primary_key=True)
     admin = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
     address = models.TextField()
+    fcm_token = models.TextField(default="")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -63,11 +75,13 @@ class Subject(models.Model):
 
 
 class Student(models.Model):
+    id = models.AutoField(primary_key=True)
     admin = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
     gender = models.CharField(max_length=255)
     profile_picture = models.FileField()
     address = models.TextField()
     course = models.ForeignKey(Courses, on_delete=models.DO_NOTHING, null=True)
+    fcm_token = models.TextField(default="")
     session_year = models.ForeignKey(SessionYear, on_delete=models.CASCADE, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -138,6 +152,17 @@ class NotificationStaff(models.Model):
     message = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+
+class StudentResult(models.Model):
+    id = models.AutoField(primary_key=True)
+    student_id = models.ForeignKey(Student, on_delete=models.CASCADE)
+    subject_id = models.ForeignKey(Subject, on_delete=models.CASCADE)
+    subject_exam_marks = models.FloatField(default=0)
+    subject_assignment_marks = models.FloatField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    objects = models.Manager()
 
 
 @receiver(post_save, sender=CustomUser)
