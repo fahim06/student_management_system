@@ -297,30 +297,37 @@ def staff_add_result(request):
 def save_student_result(request):
     if request.method != "POST":
         return HttpResponseRedirect(reverse("staff_add_result"))
-    student_admin_id = request.POST.get("student_list")
-    assignment_marks = request.POST.get("assignment_marks")
-    exam_marks = request.POST.get("exam_marks")
-    subject_id = request.POST.get("subject")
-
-    student_obj = Student.objects.get(admin=student_admin_id)
-    subject_obj = Subject.objects.get(id=subject_id)
     try:
-        check_exist = StudentResult.object.filter(subject_id=subject_obj, student_id=student_obj).exists()
-        if check_exist:
-            result = StudentResult.object.get(subject_id=subject_obj, student_id=student_obj)
-            result.subject_assignment_marks = assignment_marks
-            result.subject_exam_marks = exam_marks
-            result.save()
-            messages.success(request, "Successfully Updated Result")
-            return HttpResponseRedirect(reverse("staff_add_result"))
-        else:
-            result = StudentResult(student_id=student_obj, subject_id=subject_obj, subject_exam_marks=exam_marks,
-                                   subject_assignment_marks=assignment_marks)
-            result.save()
+        student_admin_id = request.POST.get("student_list")
+        assignment_marks = request.POST.get("assignment_marks")
+        exam_marks = request.POST.get("exam_marks")
+        subject_id = request.POST.get("subject")
+
+        student_obj = Student.objects.get(admin=student_admin_id)
+        subject_obj = Subject.objects.get(id=subject_id)
+
+        # Use update_or_create for efficiency and clarity.
+        # It handles both creating a new result and updating an existing one.
+        result, created = StudentResult.objects.update_or_create(
+            student_id=student_obj,
+            subject_id=subject_obj,
+            defaults={
+                "subject_assignment_marks": assignment_marks,
+                "subject_exam_marks": exam_marks
+            }
+        )
+
+        if created:
             messages.success(request, "Successfully Added Result")
-            return HttpResponseRedirect(reverse("staff_add_result"))
+        else:
+            messages.success(request, "Successfully Updated Result")
+
+        return HttpResponseRedirect(reverse("staff_add_result"))
+
     except Exception as e:
         messages.error(request, f"Failed to Add Result: {e}")
+        # Ensure a redirect happens even when an error occurs
+        return HttpResponseRedirect(reverse("staff_add_result"))
 
 
 @csrf_exempt
