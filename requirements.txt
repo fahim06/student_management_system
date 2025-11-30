@@ -1,4 +1,28 @@
-django
-mysqlclient
-pillow
+# Django Core
+asgiref
+Django
+gunicorn
 python-dotenv
+sqlparse
+whitenoise
+
+# Database
+dj-database-url
+psycopg2-binary
+
+
+# Django Packages & Media
+captcha
+django-recaptcha
+certifi
+cloudinary
+django-cloudinary-storage
+pillow
+
+# Utilities
+charset-normalizer
+idna
+requests
+six
+urllib3
+
