@@ -45,16 +45,8 @@ INSTALLED_APPS = [
     'student_management_app',
 ]
 
-# Conditionally add development-specific apps
-if DEBUG:
-    INSTALLED_APPS.append('whitenoise.runserver_nostatic')
-
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-
-    # WhiteNoise middleware should be placed high up
-    'whitenoise.middleware.WhiteNoiseMiddleware',
-
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -136,7 +128,6 @@ USE_TZ = True
 # --- Static Files (CSS, JavaScript, Images) ---
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles_build')
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'student_management_app/static')]
 
 # --- Media Files (User-uploaded content) ---
