@@ -25,7 +25,7 @@
     },
     {
       "src": "/(.*)",
-      "dest": "student_management_system/wsgi.py"
+      "dest": "build.sh"
     }
   ]
 }
