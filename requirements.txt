@@ -8,7 +8,8 @@ whitenoise
 
 # Database
 dj-database-url
-psycopg
+psycopg2-binary
+
 
 # Django Packages & Media
 captcha
@@ -24,3 +25,4 @@ idna
 requests
 six
 urllib3
+

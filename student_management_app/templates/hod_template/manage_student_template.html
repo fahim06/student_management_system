@@ -197,7 +197,7 @@
                                         <td>{{ student.course.course_name }}</td>
                                         <td>{{ student.gender }}</td>
                                         <td>{{ student.address }}</td>
-                                        <td>{{ student.session_year }}</td>
+                                        <td>{{ student.session_year|safe }}</td>
                                         <td><a href="{% url 'edit_student' student.admin.id %}"
                                                class="btn btn-primary btn-sm">
                                             <i class="bi bi-pencil-square"></i> Edit</a></td>
