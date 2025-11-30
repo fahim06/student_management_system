@@ -50,32 +50,54 @@ def student_home(request):
 
 
 def student_view_attendance(request):
-    user = CustomUser.objects.get(id=request.user.id)
-    student = Student.objects.get(admin=user)
-    student_obj = Student.objects.get(admin=request.user.id)
-    course = student_obj.course_id
-    subjects = Subject.objects.filter(course_id=course)
-    context = {"subjects": subjects, "student": student}
+    """
+    Handles both displaying the attendance filter form (GET) and showing
+    the attendance results based on the filter (POST).
+    """
+    try:
+        student = Student.objects.select_related('course').get(admin=request.user)
+    except Student.DoesNotExist:
+        messages.error(request, "Could not find student profile.")
+        return HttpResponseRedirect(reverse('student_home'))
+
+    subjects = Subject.objects.filter(course=student.course)
+    context = {
+        "subjects": subjects,
+        "student": student
+    }
+
+    if request.method == 'POST':
+        subject_id = request.POST.get('subject')
+        start_date_str = request.POST.get('start_date')
+        end_date_str = request.POST.get('end_date')
+
+        # Add selected values to context to repopulate the form
+        context.update({
+            'selected_subject_id': subject_id,
+            'start_date': start_date_str,
+            'end_date': end_date_str,
+        })
+
+        try:
+            # Validate and parse dates
+            start_date = datetime.datetime.strptime(start_date_str, "%Y-%m-%d").date()
+            end_date = datetime.datetime.strptime(end_date_str, "%Y-%m-%d").date()
+
+            # A more efficient, single query to get the reports
+            attendance_reports = AttendanceReport.objects.filter(
+                student=student,
+                attendance__subject_id=subject_id,
+                attendance__attendance_date__range=(start_date, end_date)
+            ).select_related('attendance', 'attendance__subject')
+
+            context['attendance_reports'] = attendance_reports
+
+        except (ValueError, TypeError):
+            messages.error(request, "Invalid date format. Please select a valid start and end date.")
+        except Exception as e:
+            messages.error(request, f"An error occurred: {e}")
+
     return render(request, "student_template/student_view_attendance_template.html", context)
-
-
-def student_view_attendance_post(request):
-    user = CustomUser.objects.get(id=request.user.id)
-    student = Student.objects.get(admin=user)
-    subject_id = request.POST.get('subject')
-    start_date = request.POST.get('start_date')
-    end_date = request.POST.get('end_date')
-
-    start_date_parse = datetime.datetime.strptime(start_date, "%Y-%m-%d").date()
-    end_date_parse = datetime.datetime.strptime(end_date, "%Y-%m-%d").date()
-    subject_obj = Subject.objects.get(id=subject_id)
-    user_obj = CustomUser.objects.get(id=request.user.id)
-    student_obj = Student.objects.get(admin=user_obj)
-    attendance = Attendance.objects.filter(attendance_date__range=(start_date_parse, end_date_parse),
-                                           subject_id=subject_obj)
-    attendance_reports = AttendanceReport.objects.filter(attendance_id__in=attendance, student_id=student_obj)
-    context = {"attendance_reports": attendance_reports, "student": student}
-    return render(request, "student_template/student_attendance_data_template.html", context)
 
 
 def student_apply_leave(request):

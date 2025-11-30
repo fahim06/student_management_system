@@ -116,8 +116,6 @@ urlpatterns = [
                   # Student URL Paths
                   path('student_home', studentViews.student_home, name="student_home"),
                   path('student_view_attendance', studentViews.student_view_attendance, name="student_view_attendance"),
-                  path('student_view_attendance_post', studentViews.student_view_attendance_post,
-                       name="student_view_attendance_post"),
                   path('student_apply_leave', studentViews.student_apply_leave, name="student_apply_leave"),
                   path('student_apply_leave_save', studentViews.student_apply_leave_save,
                        name="student_apply_leave_save"),
