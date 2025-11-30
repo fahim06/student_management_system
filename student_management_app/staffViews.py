@@ -1,7 +1,6 @@
 import json
 
 from django.contrib import messages
-from django.core import serializers
 from django.db.models import Count, Q
 from django.http import HttpResponse, JsonResponse, HttpResponseRedirect
 from django.shortcuts import render
@@ -71,27 +70,37 @@ def staff_home(request):
 
 
 def staff_take_attendance(request):
+    """
+    Renders the initial page for taking attendance, providing dropdowns
+    for subjects and session years.
+    """
     staff_user = Staff.objects.get(admin=request.user)
     subjects = Subject.objects.filter(staff=staff_user)
     session_years = SessionYear.objects.all()
-    return render(request, "staff_template/staff_take_attendance_template.html",
-                  {"subjects": subjects, "session_years": session_years})
+    context = {
+        "subjects": subjects,
+        "session_years": session_years,
+        "staff": staff_user  # Pass staff object for base template
+    }
+    return render(request, "staff_template/staff_take_attendance_template.html", context)
 
 
 def get_students(request):
+    """
+    AJAX endpoint to fetch students for a given subject and session.
+    """
     subject_id = request.POST.get('subject')
     session_year = request.POST.get('session_year')
 
     subject = Subject.objects.get(id=subject_id)
     session_model = SessionYear.objects.get(id=session_year)
-    students = Student.objects.filter(course_id=subject.course_id, session_year=session_model)
-    student_data = serializers.serialize("python", students)
+    students = Student.objects.filter(course_id=subject.course_id, session_year=session_model).select_related('admin')
     list_data = []
 
     for student in students:
         data_small = {"id": student.admin.id, "name": student.admin.first_name + " " + student.admin.last_name}
         list_data.append(data_small)
-    return JsonResponse(json.dumps(list_data), content_type="application/json", safe=False)
+    return JsonResponse(list_data, safe=False)
 
 
 def save_attendance_data(request):
