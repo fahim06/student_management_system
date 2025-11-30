@@ -1,8 +1,8 @@
 import datetime
 
 from django.contrib import messages
-from django.http import HttpResponseRedirect, HttpResponse
 from django.db.models import Count, Q
+from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
@@ -193,35 +193,67 @@ def student_all_notifications(request):
 
 
 def student_view_result(request):
-    student = Student.objects.get(admin=request.user.id)
-    results = StudentResult.objects.filter(student_id=student.id).select_related('subject_id')
+    student = Student.objects.get(admin=request.user)
+    results = StudentResult.objects.filter(student=student).select_related('subject')
 
-    # Process results to add calculated fields
     for result in results:
-        # Assuming Exam is out of 100 and Assignment is out of 25
-        total_marks = result.subject_exam_marks + result.subject_assignment_marks
-        total_possible = 125  # 100 for exam + 25 for assignment
-
-        result.total_marks = total_marks
+        max_exam_marks = 75
+        max_assignment_marks = 25
+        total_possible = max_exam_marks + max_assignment_marks
+        result.total_marks = result.subject_exam_marks + result.subject_assignment_marks
         try:
-            result.percentage = (total_marks / total_possible) * 100
+            result.percentage = (result.total_marks / total_possible) * 100
         except ZeroDivisionError:
             result.percentage = 0
 
-        # Determine Grade
-        if result.percentage >= 90:
+        # Calculate Grade based on the percentage
+        if result.percentage >= 80:
+            result.grade_point = 4.0
+            result.grade = "A+"
+        elif result.percentage >= 75:
+            result.grade_point = 3.75
             result.grade = "A"
-        elif result.percentage >= 80:
-            result.grade = "B"
         elif result.percentage >= 70:
-            result.grade = "C"
+            result.grade_point = 3.50
+            result.grade = "A-"
+        elif result.percentage >= 65:
+            result.grade_point = 3.25
+            result.grade = "B+"
         elif result.percentage >= 60:
+            result.grade_point = 3.0
+            result.grade = "B"
+        elif result.percentage >= 55:
+            result.grade_point = 2.75
+            result.grade = "B-"
+        elif result.percentage >= 50:
+            result.grade_point = 2.50
+            result.grade = "C+"
+        elif result.percentage >= 45:
+            result.grade_point = 2.25
+            result.grade = "C"
+        elif result.percentage >= 40:
+            result.grade_point = 2.0
             result.grade = "D"
         else:
             result.grade = "F"
 
-        # Determine Pass/Fail Status (based on exam marks as per original logic)
-        result.status = "Pass" if result.subject_exam_marks >= 40 else "Fail"
+        # Calculate Grade Point (GPA) based on the grade
+        # if result.grade.startswith("A"):
+        #     result.grade_point = 4.0
+        # elif result.grade.startswith("B"):
+        #     result.grade_point = 3.0
+        # elif result.grade.startswith("C"):
+        #     result.grade_point = 2.0
+        # elif result.grade == "D":
+        #     result.grade_point = 1.0
+        # else:
+        #     result.grade_point = 0.0
 
-    context = {"student_result": results, "student": student}
+        result.status = "Pass" if result.subject_exam_marks >= 30 else "Fail"
+
+    context = {
+        'results': results,
+        'student': student,  # Pass student for the base template
+    }
+
     return render(request, "student_template/student_view_result_template.html", context)

@@ -286,48 +286,79 @@ def staff_all_notifications(request):
     return render(request, "staff_template/staff_all_notifications_template.html", {"notifications": notifications})
 
 
-def staff_add_result(request):
-    # Fetch subjects assigned to the currently logged-in staff member
-    subjects = Subject.objects.filter(staff_id=request.user.id)
+def staff_manage_results(request):
+    """
+    A unified view for staff to add and edit student results.
+
+    - GET: Displays dropdowns to select a subject and session.
+    - POST (fetch_students): Fetches students for the selected subject/session
+      and displays a form with their current marks.
+    - POST (save_results): Saves the updated marks for all students.
+    """
+    staff_user = Staff.objects.get(admin=request.user)
+    subjects = Subject.objects.filter(staff=staff_user)
     session_years = SessionYear.objects.all()
-    return render(request, "staff_template/staff_add_result_template.html",
-                  {"subjects": subjects, "session_years": session_years})
+    context = {
+        "subjects": subjects,
+        "session_years": session_years,
+        "staff": staff_user
+    }
 
+    if request.method == 'POST':
+        # Scenario 1: Fetching students after subject and session selection
+        if 'fetch_students' in request.POST:
+            subject_id = request.POST.get('subject')
+            session_year_id = request.POST.get('session_year')
 
-def save_student_result(request):
-    if request.method != "POST":
-        return HttpResponseRedirect(reverse("staff_add_result"))
-    try:
-        student_admin_id = request.POST.get("student_list")
-        assignment_marks = request.POST.get("assignment_marks")
-        exam_marks = request.POST.get("exam_marks")
-        subject_id = request.POST.get("subject")
+            if not subject_id or not session_year_id:
+                messages.error(request, "Please select both a subject and a session.")
+                return render(request, "staff_template/staff_manage_results_template.html", context)
 
-        student_obj = Student.objects.get(admin=student_admin_id)
-        subject_obj = Subject.objects.get(id=subject_id)
+            try:
+                subject_obj = Subject.objects.get(id=subject_id)
+                session_year_obj = SessionYear.objects.get(id=session_year_id)
+                students = Student.objects.filter(course_id=subject_obj.course_id, session_year=session_year_obj)
 
-        # Use update_or_create for efficiency and clarity.
-        # It handles both creating a new result and updating an existing one.
-        result, created = StudentResult.objects.update_or_create(
-            student_id=student_obj,
-            subject_id=subject_obj,
-            defaults={
-                "subject_assignment_marks": assignment_marks,
-                "subject_exam_marks": exam_marks
-            }
-        )
+                # For each student, get or create a result entry
+                student_results = []
+                for student in students:
+                    result, created = StudentResult.objects.get_or_create(
+                        student=student,
+                        subject=subject_obj
+                    )
+                    student_results.append({'student': student, 'result': result})
 
-        if created:
-            messages.success(request, "Successfully Added Result")
-        else:
-            messages.success(request, "Successfully Updated Result")
+                context.update({
+                    "student_results": student_results,
+                    "selected_subject_id": subject_id,
+                    "selected_session_year_id": session_year_id
+                })
+            except (Subject.DoesNotExist, SessionYear.DoesNotExist):
+                messages.error(request, "Invalid subject or session selected.")
 
-        return HttpResponseRedirect(reverse("staff_add_result"))
+        # Scenario 2: Saving the marks for the displayed students
+        elif 'save_results' in request.POST:
+            subject_id = request.POST.get('subject_id')
+            student_ids = request.POST.getlist('student_ids')
 
-    except Exception as e:
-        messages.error(request, f"Failed to Add Result: {e}")
-        # Ensure a redirect happens even when an error occurs
-        return HttpResponseRedirect(reverse("staff_add_result"))
+            try:
+                subject_obj = Subject.objects.get(id=subject_id)
+                for student_id in student_ids:
+                    assignment_marks = request.POST.get(f'assignment_marks_{student_id}')
+                    exam_marks = request.POST.get(f'exam_marks_{student_id}')
+                    student_obj = Student.objects.get(id=student_id)
+
+                    # Update the existing result
+                    StudentResult.objects.filter(student=student_obj, subject=subject_obj).update(
+                        subject_assignment_marks=assignment_marks,
+                        subject_exam_marks=exam_marks
+                    )
+                messages.success(request, "Results saved successfully!")
+            except (Subject.DoesNotExist, Student.DoesNotExist):
+                messages.error(request, "An error occurred while saving results.")
+            return HttpResponseRedirect(reverse('staff_manage_results'))
+
+    return render(request, "staff_template/staff_manage_results_template.html", context)
 
 
 @csrf_exempt

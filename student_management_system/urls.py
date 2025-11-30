@@ -109,8 +109,7 @@ urlpatterns = [
                   path('staff_profile_save', staffViews.staff_profile_save, name="staff_profile_save"),
                   path('staff_fcmtoken_save', staffViews.staff_fcmtoken_save, name="staff_fcmtoken_save"),
                   path('staff_all_notifications', staffViews.staff_all_notifications, name="staff_all_notifications"),
-                  path('staff_add_result', staffViews.staff_add_result, name="staff_add_result"),
-                  path('save_student_result', staffViews.save_student_result, name="save_student_result"),
+                  path('staff_manage_results', staffViews.staff_manage_results, name="staff_manage_results"),
                   path('edit_student_result', EditResultViewClass.as_view(), name="edit_student_result"),
                   path('fetch_result_student', staffViews.fetch_result_student, name="fetch_result_student"),
 

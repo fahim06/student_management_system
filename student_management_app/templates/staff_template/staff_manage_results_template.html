@@ -1,0 +1,117 @@
+{% extends 'staff_template/base_template.html' %}
+{% block page_title %}
+    Manage Student Results
+{% endblock page_title %}
+{% block main_content %}
+
+    <section class="content">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="card card-primary card-outline mb-4">
+                        <div class="card-header">
+                            <h3 class="card-title"><i class="bi bi-journal-check me-2"></i>Manage Student Results</h3>
+                        </div>
+                        <form role="form" method="post" action="{% url 'staff_manage_results' %}">
+                            {% csrf_token %}
+                            <div class="card-body">
+                                <!-- Display Messages -->
+                                {% if messages %}
+                                    {% for message in messages %}
+                                        <div class="alert alert-{{ message.tags }} text-center" role="alert">
+                                            {{ message }}
+                                        </div>
+                                    {% endfor %}
+                                {% endif %}
+
+                                <!-- Step 1: Subject and Session Selection -->
+                                <div class="row">
+                                    <div class="col-md-6 form-group">
+                                        <label for="subject" class="form-label">Subject</label>
+                                        <select class="form-control" name="subject" id="subject">
+                                            <option value="">-- Select Subject --</option>
+                                            {% for subject in subjects %}
+                                                <option value="{{ subject.id }}"
+                                                        {% if subject.id|stringformat:"s" == selected_subject_id %}selected{% endif %}>
+                                                    {{ subject.subject_name }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6 form-group">
+                                        <label for="session_year" class="form-label">Session Year</label>
+                                        <select class="form-control" name="session_year" id="session_year">
+                                            <option value="">-- Select Session --</option>
+                                            {% for session in session_years %}
+                                                <option value="{{ session.id }}"
+                                                        {% if session.id|stringformat:"s" == selected_session_year_id %}selected{% endif %}>
+                                                    {{ session|safe }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-footer">
+                                <button type="submit" name="fetch_students" class="btn btn-primary w-100">
+                                    <i class="bi bi-people-fill me-2"></i>Fetch Students
+                                </button>
+                            </div>
+
+                            <!-- Step 2: Display Students and Marks (conditional) -->
+                            {% if student_results %}
+                                <div class="card-body border-top">
+                                    <h4 class="mb-3">Enter Marks
+                                        for {{ student_results.0.result.subject.subject_name }}</h4>
+                                    <div class="table-responsive">
+                                        <table class="table table-hover">
+                                            <thead class="table-light">
+                                            <tr>
+                                                <th>Student ID</th>
+                                                <th>Student Name</th>
+                                                <th>Assignment Marks out of 25</th>
+                                                <th>Exam Marks out of 75</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            {% for item in student_results %}
+                                                <tr>
+                                                    <td>{{ item.student.admin.id }}</td>
+                                                    <td>{{ item.student.admin.first_name }} {{ item.student.admin.last_name }}</td>
+                                                    <td>
+                                                        <input type="number" class="form-control"
+                                                               name="assignment_marks_{{ item.student.id }}"
+                                                               value="{{ item.result.subject_assignment_marks }}"
+                                                               step="0.01" min="0" max="100">
+                                                    </td>
+                                                    <td>
+                                                        <input type="number" class="form-control"
+                                                               name="exam_marks_{{ item.student.id }}"
+                                                               value="{{ item.result.subject_exam_marks }}"
+                                                               step="0.01" min="0" max="100">
+                                                        <!-- Hidden field to track which students were displayed -->
+                                                        <input type="hidden" name="student_ids"
+                                                               value="{{ item.student.id }}">
+                                                    </td>
+                                                </tr>
+                                            {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                <div class="card-footer">
+                                    <!-- Hidden fields to persist state when saving -->
+                                    <input type="hidden" name="subject_id" value="{{ selected_subject_id }}">
+                                    <button type="submit" name="save_results" class="btn btn-success w-100">
+                                        <i class="bi bi-save-fill me-2"></i>Save All Results
+                                    </button>
+                                </div>
+                            {% endif %}
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+{% endblock main_content %}

@@ -18,31 +18,36 @@
             margin: 0 auto 1rem;
         }
 
-        .grade-A {
+        /* --- Grade Colors --- */
+        /* A Grades (Success Green) */
+        .grade-A,
+        .grade-A\+,
+        .grade-A\- {
             background-color: #198754;
         }
 
-        /* Success Green */
-        .grade-B {
+        /* B Grades (Info Blue) */
+        .grade-B,
+        .grade-B\+,
+        .grade-B\- {
             background-color: #0dcaf0;
         }
 
-        /* Info Blue */
-        .grade-C {
+        /* C Grades (Warning Yellow) */
+        .grade-C,
+        .grade-C\+ {
             background-color: #ffc107;
         }
 
-        /* Warning Yellow */
+        /* D Grade (Orange) */
         .grade-D {
             background-color: #fd7e14;
         }
 
-        /* Orange */
+        /* F Grade (Danger Red) */
         .grade-F {
             background-color: #dc3545;
         }
-
-        /* Danger Red */
 
         .result-card {
             transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
@@ -59,18 +64,18 @@
 
     <section class="content">
         <div class="container-fluid">
-            {% if not student_result %}
+            {% if not results %}
                 <div class="alert alert-info text-center">
                     <h4 class="alert-heading">No Results Found</h4>
                     <p>Your academic results have not been published yet. Please check back later.</p>
                 </div>
             {% else %}
                 <div class="row">
-                    {% for result in student_result %}
+                    {% for result in results %}
                         <div class="col-md-6 col-lg-4">
                             <div class="card result-card mb-4 shadow-sm">
                                 <div class="card-header bg-light">
-                                    <h5 class="card-title mb-0 text-center fw-bold">{{ result.subject_id.subject_name }}</h5>
+                                    <h5 class="card-title mb-0 text-center fw-bold">{{ result.subject.subject_name }}</h5>
                                 </div>
                                 <div class="card-body text-center">
                                     <div class="grade-circle grade-{{ result.grade }}">
@@ -83,15 +88,19 @@
                                         </li>
                                         <li class="list-group-item d-flex justify-content-between align-items-center">
                                             Exam Marks
-                                            <span class="badge bg-secondary rounded-pill fs-6">{{ result.subject_exam_marks }} / 100</span>
+                                            <span class="badge bg-secondary rounded-pill fs-6">{{ result.subject_exam_marks }} / 75</span>
                                         </li>
                                         <li class="list-group-item d-flex justify-content-between align-items-center fw-bold">
                                             Total Marks
-                                            <span class="badge bg-primary rounded-pill fs-6">{{ result.total_marks }} / 125</span>
+                                            <span class="badge bg-primary rounded-pill fs-6">{{ result.total_marks }} / 100</span>
                                         </li>
                                         <li class="list-group-item d-flex justify-content-between align-items-center">
                                             Percentage
                                             <span class="badge bg-info rounded-pill fs-6">{{ result.percentage|floatformat:2 }}%</span>
+                                        </li>
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            Grade Point
+                                            <span class="badge bg-dark rounded-pill fs-6">{{ result.grade_point|floatformat:1 }} / 4.0</span>
                                         </li>
                                     </ul>
                                 </div>
