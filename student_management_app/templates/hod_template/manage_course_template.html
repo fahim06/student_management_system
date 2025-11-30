@@ -1,49 +1,69 @@
 {% extends 'hod_template/base_template.html' %}
 {% block page_title %}
-    Manage Course
+    Manage Courses
 {% endblock page_title %}
 {% block main_content %}
 
     <section class="content">
         <div class="container-fluid">
-            <div class="form-group>">
-                {% if messages %}
-                    {% for message in messages %}
-                        {% if message.tags == 'error' %}
-                            <div class="alert alert-danger"
-                                 style="margin-top: 10px;text-align: center ">{{ message }}</div>
-                        {% endif %}
-                        {% if message.tags == 'success' %}
-                            <div class="alert alert-success"
-                                 style="margin-top: 10px;text-align: center ">{{ message }}</div>
-                        {% endif %}
-                    {% endfor %}
-                {% endif %}
-            </div>
+            {% if messages %}
+                <div class="row">
+                    <div class="col-12">
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} text-center" role="alert">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
             <div class="row">
-                <div class="col-12">
-                    <div class="card">
-                        <div class="card-header">
-                            <h3 class="card-title">Course Details</h3>
-
+                <div class="col-md-12">
+                    <div class="card card-primary card-outline mb-4 collapsed-card">
+                        <div class="card-header" style="cursor: pointer;" data-lte-toggle="card-collapse">
+                            <h3 class="card-title"><i class="bi bi-plus-circle-fill me-2"></i>Add New Course</h3>
                             <div class="card-tools">
-                                <div class="input-group input-group-sm" style="width: 150px;">
-                                    <input type="text" name="table_search" class="form-control float-right"
-                                           placeholder="Search">
-                                    <div class="input-group-append">
-                                        <button type="submit" class="btn btn-default"><i class="fas fa-search"></i>
-                                        </button>
+                                <button type="button" class="btn btn-tool" data-lte-toggle="card-collapse"
+                                        title="Toggle Card">
+                                    <i data-lte-icon="expand" class="bi bi-plus-lg"></i>
+                                    <i data-lte-icon="collapse" class="bi bi-dash-lg"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <form role="form" action="{% url 'add_course_save' %}" method="post">
+                            {% csrf_token %}
+                            <div class="card-body bg-primary-subtle">
+                                <div class="form-group">
+                                    <label for="course_name" class="form-label">Course Name</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i
+                                                class="bi bi-journal-bookmark-fill"></i></span>
+                                        <input type="text" class="form-control" name="course"
+                                               id="course_name" placeholder="E.g., Bachelor of Science" required>
                                     </div>
                                 </div>
                             </div>
+                            <div class="card-footer text-start">
+                                <a href="javascript:history.back()" class="btn btn-secondary"><i
+                                        class="bi bi-arrow-left-circle me-2"></i>Back</a>
+                                <button type="submit" class="btn btn-primary ms-2"><i
+                                        class="bi bi-save-fill me-2"></i>Save Course
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="card card-primary card-outline">
+                        <div class="card-header">
+                            <h3 class="card-title"><i class="bi bi-card-list me-2"></i>Existing Courses</h3>
                         </div>
-                        <!-- /.card-header -->
                         <div class="card-body table-responsive p-0">
                             <table class="table table-hover text-nowrap">
                                 <thead>
                                 <tr>
                                     <th>ID</th>
                                     <th>Course Name</th>
+                                    <th>Created On</th>
                                     <th>Action</th>
                                 </tr>
                                 </thead>
@@ -52,9 +72,17 @@
                                     <tr>
                                         <td>{{ course.id }}</td>
                                         <td>{{ course.course_name }}</td>
+                                        <td>{{ course.created_at|date:"Y-m-d" }}</td>
                                         <td>
-                                            <a href="/edit_course/{{ course.id }}"
-                                               class="btn btn-primary btn-sm">Edit</a>
+                                            <a href="{% url 'edit_course' course.id %}"
+                                               class="btn btn-primary btn-sm"><i class="bi bi-pencil-square"></i>
+                                                Edit</a>
+                                        </td>
+                                    </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="4" class="text-center text-muted py-4">
+                                            No courses have been added yet.
                                         </td>
                                     </tr>
                                 {% endfor %}
@@ -66,5 +94,4 @@
             </div>
         </div>
     </section>
-
 {% endblock main_content %}

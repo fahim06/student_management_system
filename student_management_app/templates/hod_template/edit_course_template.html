@@ -1,38 +1,43 @@
 {% extends 'hod_template/base_template.html' %}
 {% block page_title %}
-    Edit Course | Course ID : {{ course.id }}
+    Edit Course | {{ course.course_name }}
 {% endblock page_title %}
 {% block main_content %}
 
     <section class="content">
         <div class="container-fluid">
             <div class="row">
-                <div class="card card-primary card-outline mb-4">
-                    <!--begin::Header-->
-                    <div class="card-header">
-                        <div class="card-title">Edit Course</div>
-                    </div>
-                    <!--end::Header-->
-                    <!--begin::Form-->
-                    <form role="form" action="/edit_course_save" method="post">
-                        {% csrf_token %}
-                        <!--begin::Body-->
-                        <div class="card-body">
-                            <div class="form-group">
-                                <label class="form-label">Course Name</label>
-                                <input type="text" class="form-control" name="course" placeholder="Enter course"
-                                       value="{{ course.course_name }}">
-                                <input type="hidden" name="course_id" value="{{ course.id }}">
+                <div class="col-md-12">
+                    <form role="form" action="{% url 'edit_course_save' %}" method="post">
+                        <div class="card card-primary card-outline mb-4">
+                            {% csrf_token %}
+                            <div class="card-header">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h3 class="card-title mb-0 mx-auto"><i class="bi bi-pencil-square me-2"></i>Edit
+                                        Course</h3>
+                                </div>
+                            </div>
+                            <div class="card-body bg-primary-subtle">
+                                <div class="form-group">
+                                    <label for="course_name" class="form-label">Course Name</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i
+                                                class="bi bi-journal-bookmark-fill"></i></span>
+                                        <input type="text" class="form-control" id="course_name" name="course"
+                                               value="{{ course.course_name }}" required>
+                                        <input type="hidden" name="course_id" value="{{ course.id }}">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-footer text-start">
+                                <a href="javascript:history.back()" class="btn btn-secondary">
+                                    <i class="bi bi-arrow-left-circle me-2"></i>Back</a>
+                                <button type="submit" class="btn btn-primary ms-2"><i
+                                        class="bi bi-save-fill me-2"></i>Save Changes
+                                </button>
                             </div>
                         </div>
-                        <!--end::Body-->
-                        <!--begin::Footer-->
-                        <div class="card-footer">
-                            <button type="submit" class="btn btn-primary w-100">Save Change</button>
-                        </div>
-                        <!--end::Footer-->
                     </form>
-                    <!--end::Form-->
                 </div>
             </div>
         </div>

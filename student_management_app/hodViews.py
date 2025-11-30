@@ -3,7 +3,6 @@ import os
 
 from django.contrib import messages
 from django.contrib.sites import requests
-from django.core.files.storage import FileSystemStorage
 from django.db.models import Count, Q
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
@@ -29,26 +28,17 @@ def admin_home(request):
     subject_count = Subject.objects.all().count()
     course_count = Courses.objects.all().count()
 
-    # --- 2. Data for Charts ---
-
-    # Chart: "Total subject in each course" & "Total student in each course"
-    # A single query to get subject and student counts grouped by course.
-
+    # --- 2. Data for Course-related Charts ---
     course_data = Courses.objects.annotate(
         subject_count=Count('subject'),
         student_count=Count('student')
     ).values('course_name', 'subject_count', 'student_count')
 
-    # Unpack the data for the template context
-
     course_name_list = [item['course_name'] for item in course_data]
     subject_cont_list = [item['subject_count'] for item in course_data]
     student_count_list_in_course = [item['student_count'] for item in course_data]
 
-    # Chart: "Total Student in Each Subject"
-    # This chart shows the number of students in the *course* that a subject belongs to.
-    # An efficient query to get this data.
-
+    # --- 3. Data for Subject-related Chart ---
     subject_data = Subject.objects.select_related('course').annotate(
         student_count_in_course=Count('course__student')
     ).values('subject_name', 'student_count_in_course')
@@ -56,11 +46,9 @@ def admin_home(request):
     subject_list_for_pie_chart = [item['subject_name'] for item in subject_data]
     student_count_in_subject_for_pie_chart = [item['student_count_in_course'] for item in subject_data]
 
-    # Chart: "Staff Attendance vs. Leave"
-    # Efficiently annotates attendance and leave counts directly onto the Staff queryset.
-
+    # --- 4. Data for Staff Attendance Chart ---
     staff_attendance_data = Staff.objects.select_related('admin').annotate(
-        attendance_count=Count('admin__subject__attendance'),
+        attendance_count=Count('subject__attendance'),
         leave_count=Count('leavereportstaff', filter=Q(leavereportstaff__leave_status=1))
     ).values('admin__username', 'attendance_count', 'leave_count')
 
@@ -68,9 +56,7 @@ def admin_home(request):
     attendance_present_list_staff = [item['attendance_count'] for item in staff_attendance_data]
     attendance_absent_list_staff = [item['leave_count'] for item in staff_attendance_data]
 
-    # Chart: "Student Attendance vs. Leave"
-    # Efficiently annotates attendance and leave counts directly onto the Student queryset.
-
+    # --- 5. Data for Student Attendance Chart ---
     student_attendance_data = Student.objects.select_related('admin').annotate(
         present_count=Count('attendancereport', filter=Q(attendancereport__status=True)),
         absent_count=Count('attendancereport', filter=Q(attendancereport__status=False)),
@@ -79,15 +65,12 @@ def admin_home(request):
 
     student_name_list = [item['admin__username'] for item in student_attendance_data]
     attendance_present_list_student = [item['present_count'] for item in student_attendance_data]
-
     # Total "absences" is a sum of unapproved attendance and approved leaves.
-
     attendance_absent_list_student = [item['absent_count'] + item['leave_count'] for item in student_attendance_data]
 
-    # --- 3. Prepare Context and Render Template ---
-
+    # --- 6. Prepare Context and Render Template ---
     context = {
-        # --- Data for Summary Cards ---
+        # Summary Card Data
         "student_count": student_count,
         "staff_count": staff_count,
         "subject_count": subject_count,
@@ -117,10 +100,6 @@ def admin_home(request):
     return render(request, 'hod_template/home_content.html', context)
 
 
-def add_staff(request):
-    return render(request, "hod_template/add_staff_template.html")
-
-
 def add_staff_save(request):
     if request.method != "POST":
         return HttpResponse("Method Not Allowed")
@@ -131,6 +110,7 @@ def add_staff_save(request):
         email = request.POST.get("email")
         password = request.POST.get("password")
         address = request.POST.get("address")
+        profile_pic = request.FILES.get("profile_pic")
         try:
             user = CustomUser.objects.create_user(username=username, password=password, email=email,
                                                   first_name=first_name, last_name=last_name, user_type='2')
@@ -138,16 +118,14 @@ def add_staff_save(request):
             # We need to fetch that profile, update it, and then save it.
             staff_profile = user.staff
             staff_profile.address = address
+            if profile_pic:
+                staff_profile.profile_pic = profile_pic
             staff_profile.save()
             messages.success(request, "Successfully Added Staff")
-            return HttpResponseRedirect(reverse("add_staff"))
+            return HttpResponseRedirect(reverse("manage_staff"))
         except Exception as e:
             messages.error(request, f"Failed to Add Staff: {e}")
-            return HttpResponseRedirect(reverse("add_staff"))
-
-
-def add_course(request):
-    return render(request, "hod_template/add_course_template.html")
+            return HttpResponseRedirect(reverse("manage_staff"))
 
 
 def add_course_save(request):
@@ -159,15 +137,10 @@ def add_course_save(request):
             course_model = Courses(course_name=course)
             course_model.save()
             messages.success(request, "Successfully Added Course")
-            return HttpResponseRedirect(reverse("add_course"))
+            return HttpResponseRedirect(reverse("manage_course"))
         except Exception as e:
             messages.error(request, f"Failed to Add Course: {e}")
-            return HttpResponseRedirect(reverse("add_course"))
-
-
-def add_student(request):
-    form = AddStudentForm()
-    return render(request, "hod_template/add_student_template.html", {"form": form})
+            return HttpResponseRedirect(reverse("manage_course"))
 
 
 def add_student_save(request):
@@ -186,60 +159,49 @@ def add_student_save(request):
             course_id = form.cleaned_data["course"]
             sex = form.cleaned_data["sex"]
 
-            # Handle file upload safely
-            profile_picture = request.FILES.get("profile_picture", None)
-            profile_picture_url = ""
-            if profile_picture:
-                fileStorage = FileSystemStorage()
-                filename = fileStorage.save(profile_picture.name, profile_picture)
-                profile_picture_url = fileStorage.url(filename)
+            # Get the uploaded file object from the validated form data
+            profile_picture_file = form.cleaned_data.get("profile_picture")
 
             try:
                 user = CustomUser.objects.create_user(username=username, password=password, email=email,
                                                       first_name=first_name, last_name=last_name, user_type='3')
                 user.student.address = address
-                # Assign the object directly to the model field
                 user.student.course = course_id
-                # Assign the object directly to the model field
                 user.student.session_year = session_year_id
                 user.student.gender = sex
-                user.student.profile_picture = profile_picture_url
+                if profile_picture_file:
+                    user.student.profile_picture = profile_picture_file
                 user.save()
                 messages.success(request, "Successfully Added Student")
-                return HttpResponseRedirect(reverse("add_student"))
+                return HttpResponseRedirect(reverse("manage_student"))
             except Exception as e:
                 messages.error(request, f"Failed to Add Student: {e}")
-                return HttpResponseRedirect(reverse("add_student"))
+                return HttpResponseRedirect(reverse("manage_student"))
         else:
-            form = AddStudentForm(request.POST)
             messages.error(request, "Please correct the errors below")
-            return render(request, "hod_template/add_student_template.html", {"form": form})
-
-
-def add_subject(request):
-    courses = Courses.objects.all()
-    staffs = CustomUser.objects.filter(user_type=2)
-    return render(request, "hod_template/add_subject_template.html", {"staffs": staffs, "courses": courses})
+            # Re-render the manage_student page with the form containing errors
+            return render(request, "hod_template/manage_student_template.html", {"form": form})
 
 
 def add_subject_save(request):
     if request.method != "POST":
         return HttpResponse("<h2>Method Not Allowed</h2>")
     else:
+        subject_code = request.POST.get("subject_code")
         subject_name = request.POST.get("subject_name")
         course_id = request.POST.get("course")
         course = Courses.objects.get(id=course_id)
         staff_id = request.POST.get("staff")
-        staff = CustomUser.objects.get(id=staff_id)
+        staff = Staff.objects.get(admin=staff_id)
 
         try:
-            subject = Subject(subject_name=subject_name, course=course, staff=staff)
+            subject = Subject(subject_code=subject_code, subject_name=subject_name, course=course, staff=staff)
             subject.save()
             messages.success(request, "Successfully Added Subject")
-            return HttpResponseRedirect(reverse("add_subject"))
+            return HttpResponseRedirect(reverse("manage_subject"))
         except Exception as e:
             messages.error(request, f"Failed to Add Subject: {e}")
-            return HttpResponseRedirect(reverse("add_subject"))
+            return HttpResponseRedirect(reverse("manage_subject"))
 
 
 def manage_staff(request):
@@ -248,8 +210,10 @@ def manage_staff(request):
 
 
 def manage_student(request):
-    students = Student.objects.all()
-    return render(request, "hod_template/manage_student_template.html", {"students": students})
+    students = Student.objects.select_related('admin', 'course', 'session_year').all()
+    form = AddStudentForm()
+    return render(request, "hod_template/manage_student_template.html",
+                  {"students": students, "form": form})
 
 
 def manage_course(request):
@@ -260,11 +224,15 @@ def manage_course(request):
 def manage_subject(request):
     # Use select_related to pre-fetch related Course and Staff (CustomUser) objects.
     # This is much more efficient than fetching them one by one in the template.
-    subjects = Subject.objects.select_related('course', 'staff').all()
-    return render(request, "hod_template/manage_subject_template.html", {"subjects": subjects})
+    # Also fetching courses and staffs for the "Add Subject" form dropdowns.
+    subjects = Subject.objects.select_related('course', 'staff__admin').all()
+    courses = Courses.objects.all()
+    staffs = CustomUser.objects.filter(user_type=2)
+    return render(request, "hod_template/manage_subject_template.html",
+                  {"subjects": subjects, "courses": courses, "staffs": staffs})
 
 
-def edit_staff(request, staff_id):
+def edit_staff(request, staff_id):  # No changes here, just for context
     staff = Staff.objects.get(admin=staff_id)
     return render(request, "hod_template/edit_staff_template.html", {"staff": staff, "id": staff_id})
 
@@ -279,6 +247,7 @@ def edit_staff_save(request):
         email = request.POST.get("email")
         username = request.POST.get("username")
         address = request.POST.get("address")
+        profile_pic = request.FILES.get("profile_pic")
 
         try:
             user = CustomUser.objects.get(id=staff_id)
@@ -290,6 +259,8 @@ def edit_staff_save(request):
 
             staff_model = Staff.objects.get(admin=staff_id)
             staff_model.address = address
+            if profile_pic:
+                staff_model.profile_pic = profile_pic
             staff_model.save()
 
             messages.success(request, "Successfully Edited Staff")
@@ -334,29 +305,26 @@ def edit_student_save(request):
             course_id = form.cleaned_data["course"]
             sex = form.cleaned_data["sex"]
 
-            if request.FILES.get('profile_picture', False):
-                profile_picture = request.FILES.get("profile_picture")
-                fileStorage = FileSystemStorage()
-                filename = fileStorage.save(profile_picture.name, profile_picture)
-                profile_picture_url = fileStorage.url(filename)
-            else:
-                profile_picture_url = None
-
+            # Get the user and student objects
             user = CustomUser.objects.get(id=student_id)
+            student = Student.objects.get(admin=student_id)
+
+            # Update CustomUser fields
             user.first_name = first_name
             user.last_name = last_name
             user.username = username
             user.email = email
             user.save()
 
-            student = Student.objects.get(admin=student_id)
+            # Update Student fields
             student.address = address
             student.session_year = session_year_id
             student.gender = sex
             student.course = course_id
 
-            if profile_picture_url is not None:
-                student.profile_picture = profile_picture_url
+            # Correctly handle the profile picture update from the form's cleaned data
+            if form.cleaned_data.get('profile_picture'):
+                student.profile_picture = form.cleaned_data['profile_picture']
 
             student.save()
             del request.session['student_id']
@@ -364,7 +332,6 @@ def edit_student_save(request):
             messages.success(request, "Successfully Edited Student")
             return HttpResponseRedirect(reverse("manage_student"))
         else:
-            form = EditStudentForm(request.POST)
             student = Student.objects.get(admin=student_id)
             return render(request, "hod_template/edit_student_template.html",
                           {"form": form, "id": student_id, "username": student.admin.username})
@@ -375,7 +342,7 @@ def edit_subject(request, subject_id):
     courses = Courses.objects.all()
     staffs = CustomUser.objects.filter(user_type=2)
     return render(request, "hod_template/edit_subject_template.html",
-                  {"subject": subject, "staffs": staffs, "courses": courses, "id": subject_id, })
+                  {"subject": subject, "staffs": staffs, "courses": courses})
 
 
 def edit_subject_save(request):
@@ -383,14 +350,16 @@ def edit_subject_save(request):
         return HttpResponse("<h2>Method Not Allowed</h2>")
     else:
         subject_id = request.POST.get("subject_id")
+        subject_code = request.POST.get("subject_code")
         subject_name = request.POST.get("subject_name")
         staff_id = request.POST.get("staff")
         course_id = request.POST.get("course")
 
         try:
             subject = Subject.objects.get(id=subject_id)
+            subject.subject_code = subject_code
             subject.subject_name = subject_name
-            staff = CustomUser.objects.get(id=staff_id)
+            staff = Staff.objects.get(admin=staff_id)
             subject.staff = staff
             course = Courses.objects.get(id=course_id)
             subject.course = course
@@ -439,7 +408,10 @@ def add_session_save(request):
         session_end_year = request.POST.get("session_end")
 
         try:
-            session_year = SessionYear(session_start_year=session_start_year, session_end_year=session_end_year)
+            # Create date objects for the first day of the given years
+            start_date = f"{session_start_year}-01-01"
+            end_date = f"{session_end_year}-01-01"
+            session_year = SessionYear(session_start_year=start_date, session_end_year=end_date)
             session_year.save()
             messages.success(request, "Successfully Added Session")
             return HttpResponseRedirect(reverse("manage_session"))
@@ -448,10 +420,45 @@ def add_session_save(request):
             return HttpResponseRedirect(reverse("manage_session"))
 
 
+def edit_session(request, session_id):
+    session = SessionYear.objects.get(id=session_id)
+    # Pass only the year part to the template
+    context = {
+        "session": session,
+        "session_start_year": session.session_start_year.strftime("%Y"),
+        "session_end_year": session.session_end_year.strftime("%Y")
+    }
+    return render(request, "hod_template/edit_session_template.html", context)
+
+
+def edit_session_save(request):
+    if request.method != "POST":
+        return HttpResponseRedirect(reverse("manage_session"))
+    else:
+        session_id = request.POST.get("session_id")
+        session_start_year = request.POST.get("session_start")
+        session_end_year = request.POST.get("session_end")
+
+        try:
+            session = SessionYear.objects.get(id=session_id)
+            session.session_start_year = f"{session_start_year}-01-01"
+            session.session_end_year = f"{session_end_year}-01-01"
+            session.save()
+            messages.success(request, "Successfully Edited Session")
+            return HttpResponseRedirect(reverse("manage_session"))
+        except Exception as e:
+            messages.error(request, f"Failed to Edit Session: {e}")
+            return HttpResponseRedirect(reverse("manage_session"))
+
+
 @csrf_exempt
 def check_email_exist(request):
     email = request.POST.get("email")
-    user_obj = CustomUser.objects.filter(email=email).exists()
+    user_id = request.POST.get("user_id")  # Get user_id if it exists
+    query = CustomUser.objects.filter(email=email)
+    if user_id:
+        query = query.exclude(id=user_id)  # Exclude the current user when checking
+    user_obj = query.exists()
     if user_obj:
         return HttpResponse(True)
     else:
@@ -461,7 +468,11 @@ def check_email_exist(request):
 @csrf_exempt
 def check_username_exist(request):
     username = request.POST.get("username")
-    user_obj = CustomUser.objects.filter(username=username).exists()
+    user_id = request.POST.get("user_id")  # Get user_id if it exists
+    query = CustomUser.objects.filter(username=username)
+    if user_id:
+        query = query.exclude(id=user_id)  # Exclude the current user when checking
+    user_obj = query.exists()
     if user_obj:
         return HttpResponse(True)
     else:
@@ -545,42 +556,85 @@ def staff_disapprove_leave(request, leave_id):
 
 
 def admin_view_attendance(request):
+    """
+    Renders the initial page for viewing attendance.
+    This view provides the necessary data for the filter dropdowns.
+    """
     subjects = Subject.objects.all()
-    session_year_id = SessionYear.objects.all()
-    return render(request, "hod_template/admin_view_attendance_template.html",
-                  {"subjects": subjects, "session_year_id": session_year_id})
+    session_years = SessionYear.objects.all()
+    context = {
+        "subjects": subjects,
+        "session_years": session_years
+    }
+    return render(request, "hod_template/admin_view_attendance_template.html", context)
 
 
-@csrf_exempt
 def admin_get_attendance_dates(request):
-    subject = request.POST.get("subject")
-    session_year_id = request.POST.get("session_year_id")
-    subject_obj = Subject.objects.get(id=subject)
-    session_year_obj = SessionYear.objects.get(id=session_year_id)
-    attendance = Attendance.objects.filter(subject_id=subject_obj, session_year_id=session_year_obj)
-    attendance_obj = []
-    for attendance_single in attendance:
-        data = {"id": attendance_single.id, "attendance_date": str(attendance_single.attendance_date),
-                "session_year_id": attendance_single.session_year_id.id}
-        attendance_obj.append(data)
+    """
+    Fetches attendance dates for a given subject and session via AJAX.
+    """
+    if request.method != 'POST':
+        return JsonResponse({"error": "Invalid request"}, status=400)
 
-    return JsonResponse(json.dumps(attendance_obj), safe=False)
+    try:
+        subject_id = request.POST.get("subject")
+        session_year_id = request.POST.get("session_year_id")
+
+        subject_obj = Subject.objects.get(id=subject_id)
+        session_year_obj = SessionYear.objects.get(id=session_year_id)
+
+        # Correctly filter using model objects
+        attendances = Attendance.objects.filter(subject=subject_obj, session_year=session_year_obj)
+
+        # Prepare data for JSON response
+        attendance_list = []
+        for attendance in attendances:
+            data = {
+                "id": attendance.id,
+                "attendance_date": str(attendance.attendance_date),
+                # Correctly access the integer ID
+                "session_year_id": attendance.session_year_id
+            }
+            attendance_list.append(data)
+
+        return JsonResponse(attendance_list, safe=False)
+
+    except (Subject.DoesNotExist, SessionYear.DoesNotExist):
+        return JsonResponse({"error": "Invalid subject or session"}, status=404)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
 
 
-@csrf_exempt
 def admin_get_student_attendance(request):
-    attendance_date = request.POST.get("attendance_date")
-    attendance = Attendance.objects.get(id=attendance_date)
+    """
+    Fetches all student attendance records for a specific attendance date via AJAX.
+    """
+    if request.method != 'POST':
+        return JsonResponse({"error": "Invalid request"}, status=400)
 
-    attendance_date = AttendanceReport.objects.filter(attendance_id=attendance)
-    list_data = []
+    try:
+        attendance_id = request.POST.get("attendance_date")
+        attendance = Attendance.objects.get(id=attendance_id)
 
-    for student in attendance_date:
-        data_small = {"id": student.student_id.admin.id,
-                      "name": student.student_id.admin.first_name + " " + student.student_id.admin.last_name,
-                      "status": student.status}
-        list_data.append(data_small)
-    return JsonResponse(json.dumps(list_data), content_type="application/json", safe=False)
+        # Use select_related for an efficient query
+        attendance_reports = AttendanceReport.objects.filter(attendance=attendance).select_related('student__admin')
+
+        student_data = []
+        for report in attendance_reports:
+            data = {
+                # Correctly access attributes from the related objects
+                "id": report.student.admin.id,
+                "name": f"{report.student.admin.first_name} {report.student.admin.last_name}",
+                "status": report.status
+            }
+            student_data.append(data)
+
+        return JsonResponse(student_data, safe=False)
+
+    except Attendance.DoesNotExist:
+        return JsonResponse({"error": "Attendance record not found"}, status=404)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
 
 
 def admin_profile(request):
@@ -595,21 +649,17 @@ def admin_profile_save(request):
         first_name = request.POST.get("first_name")
         last_name = request.POST.get("last_name")
         password = request.POST.get("password")
+        profile_pic_file = request.FILES.get('profile_pic')
 
         try:
             customuser = CustomUser.objects.get(id=request.user.id)
             customuser.first_name = first_name
             customuser.last_name = last_name
 
-            # An HOD user does not have a student profile, so we should not try to access it.
-            # The logic for updating a student's profile picture should be in a
-            # separate view accessible only to students.
-            # if request.FILES.get('profile_picture'):
-            #     profile_picture = request.FILES.get("profile_picture")
-            #     fileStorage = FileSystemStorage()
-            #     filename = fileStorage.save(profile_picture.name, profile_picture)
-            #     profile_picture_url = fileStorage.url(filename)
-            #     customuser.student.profile_picture = profile_picture_url
+            admin_profile = customuser.adminhod
+            if profile_pic_file:
+                admin_profile.profile_pic = profile_pic_file
+            admin_profile.save()
 
             if password is not None and password != "":
                 customuser.set_password(password)

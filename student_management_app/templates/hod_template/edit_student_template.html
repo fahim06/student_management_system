@@ -1,25 +1,213 @@
 {% extends 'hod_template/base_template.html' %}
 {% block page_title %}
-    Edit Student | Username : {{ username }} | #ID : {{ id }}
+    Edit Student | {{ username }}
 {% endblock page_title %}
 {% block main_content %}
 
     <section class="content">
         <div class="container-fluid">
-            <div class="row">
-                <div class="card card-primary card-outline mb-4">
-                    <!--begin::Header-->
-                    <div class="card-header">
-                        <div class="card-title">Edit Student</div>
+            {% if messages %}
+                <div class="row">
+                    <div class="col-12">
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} text-center" role="alert">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
                     </div>
-                    <!--end::Header-->
-                    <!--begin::Form-->
-                    {% url 'edit_student_save' as action_path %}
-                    {% include 'hod_template/form_template.html' with form=form action_path=action_path button_text="Save Changes" %}
-                    <!--end::Form-->
+                </div>
+            {% endif %}
+            <div class="row">
+                <div class="col-md-12">
+                    <form role="form" action="{% url 'edit_student_save' %}" method="post"
+                          enctype="multipart/form-data">
+                        <div class="card card-primary card-outline mb-4">
+                            {% csrf_token %}
+                            <div class="card-header">
+                                <h3 class="card-title"><i class="bi bi-pencil-square me-2"></i>Edit Student
+                                    Details</h3>
+                            </div>
+                            <div class="card-body bg-primary-subtle">
+                                <div class="row">
+                                    <div class="col-md-6 form-group">
+                                        {{ form.first_name.label_tag }}
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="bi bi-person"></i></span>
+                                            {{ form.first_name }}
+                                        </div>
+                                        {% if form.first_name.errors %}
+                                            <div class="alert alert-danger mt-1 p-2">{{ form.first_name.errors }}</div>{% endif %}
+                                    </div>
+                                    <div class="col-md-6 form-group">
+                                        {{ form.last_name.label_tag }}
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="bi bi-person"></i></span>
+                                            {{ form.last_name }}
+                                        </div>
+                                        {% if form.last_name.errors %}
+                                            <div class="alert alert-danger mt-1 p-2">{{ form.last_name.errors }}</div>{% endif %}
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 form-group">
+                                        {{ form.username.label_tag }}
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="bi bi-person-vcard"></i></span>
+                                            {{ form.username }}
+                                        </div>
+                                        {% if form.username.errors %}
+                                            <div class="alert alert-danger mt-1 p-2">{{ form.username.errors }}</div>{% endif %}
+                                    </div>
+                                    <div class="col-md-6 form-group">
+                                        {{ form.email.label_tag }}
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="bi bi-envelope-fill"></i></span>
+                                            {{ form.email }}
+                                        </div>
+                                        {% if form.email.errors %}
+                                            <div class="alert alert-danger mt-1 p-2">{{ form.email.errors }}</div>{% endif %}
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-12 form-group">
+                                        {{ form.address.label_tag }}
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="bi bi-geo-alt-fill"></i></span>
+                                            {{ form.address }}
+                                        </div>
+                                        {% if form.address.errors %}
+                                            <div class="alert alert-danger mt-1 p-2">{{ form.address.errors }}</div>{% endif %}
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 form-group">
+                                        {{ form.course.label_tag }}
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i
+                                                    class="bi bi-journal-bookmark-fill"></i></span>
+                                            {{ form.course }}
+                                        </div>
+                                        {% if form.course.errors %}
+                                            <div class="alert alert-danger mt-1 p-2">{{ form.course.errors }}</div>{% endif %}
+                                    </div>
+                                    <div class="col-md-6 form-group">
+                                        {{ form.session_year_id.label_tag }}
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="bi bi-calendar-range"></i></span>
+                                            {{ form.session_year_id }}
+                                        </div>
+                                        {% if form.session_year_id.errors %}
+                                            <div class="alert alert-danger mt-1 p-2">{{ form.session_year_id.errors }}</div>{% endif %}
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 form-group">
+                                        {{ form.sex.label_tag }}
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="bi bi-gender-ambiguous"></i></span>
+                                            {{ form.sex }}
+                                        </div>
+                                        {% if form.sex.errors %}
+                                            <div class="alert alert-danger mt-1 p-2">{{ form.sex.errors }}</div>{% endif %}
+                                    </div>
+                                    <div class="col-md-6 form-group">
+                                        {{ form.profile_picture.label_tag }}
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="bi bi-image"></i></span>
+                                            {{ form.profile_picture }}
+                                        </div>
+                                        {% if form.profile_picture.errors %}
+                                            <div class="alert alert-danger mt-1 p-2">{{ form.profile_picture.errors }}</div>{% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-footer text-start">
+                                <a href="javascript:history.back()" class="btn btn-secondary">
+                                    <i class="bi bi-arrow-left-circle me-2"></i>Back</a>
+                                <button type="submit" class="btn btn-primary ms-2"><i
+                                        class="bi bi-save-fill me-2"></i>Save Changes
+                                </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
     </section>
 
 {% endblock main_content %}
+
+{% block custom_js %}
+    <script>
+        $(document).ready(function () {
+            // Function to get CSRF token from cookies for secure POST requests
+            function getCookie(name) {
+                let cookieValue = null;
+                if (document.cookie && document.cookie !== '') {
+                    const cookies = document.cookie.split(';');
+                    for (let i = 0; i < cookies.length; i++) {
+                        const cookie = cookies[i].trim();
+                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
+                    }
+                }
+                return cookieValue;
+            }
+
+            const csrftoken = getCookie('csrftoken');
+            const studentId = "{{ id }}"; // Get the student ID from the template context
+
+            // Email validation
+            $("#id_email").on("keyup", function () {
+                const email = $(this).val();
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                $("#email_error").remove();
+
+                if (email.length === 0) return;
+
+                if (!emailRegex.test(email)) {
+                    $(this).closest('.input-group').after("<div id='email_error' class='text-danger mt-1' style='font-size: 0.875em;'>Please enter a valid email format.</div>");
+                    return;
+                }
+
+                $.ajax({
+                    url: '{% url 'check_email_exist' %}',
+                    type: 'POST',
+                    headers: {'X-CSRFToken': csrftoken},
+                    data: {email: email, user_id: studentId} // Pass studentId to exclude self
+                }).done(function (response) {
+                    $("#email_error").remove();
+                    if (response === "True") {
+                        $("#id_email").closest('.input-group').after("<div id='email_error' class='text-danger mt-1' style='font-size: 0.875em;'>Email is already taken.</div>");
+                    } else {
+                        $("#id_email").closest('.input-group').after("<div id='email_error' class='text-success mt-1' style='font-size: 0.875em;'>Email is available.</div>");
+                    }
+                });
+            });
+
+            // Username validation
+            $("#id_username").on("keyup", function () {
+                const username = $(this).val();
+                $("#username_error").remove();
+
+                if (username.length > 0) {
+                    $.ajax({
+                        url: '{% url 'check_username_exist' %}',
+                        type: 'POST',
+                        headers: {'X-CSRFToken': csrftoken},
+                        data: {username: username, user_id: studentId} // Pass studentId to exclude self
+                    }).done(function (response) {
+                        if (response === "True") {
+                            $("#id_username").closest('.input-group').after("<div id='username_error' class='text-danger mt-1' style='font-size: 0.875em;'>Username is already taken.</div>");
+                        } else {
+                            $("#id_username").closest('.input-group').after("<div id='username_error' class='text-success mt-1' style='font-size: 0.875em;'>Username is available.</div>");
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+{% endblock custom_js %}

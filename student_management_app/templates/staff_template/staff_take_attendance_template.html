@@ -7,105 +7,177 @@
     <section class="content">
         <div class="container-fluid">
             <div class="row">
-                <div class="card card-primary card-outline mb-4">
-                    <!--begin::Header-->
-                    <div class="card-header">
-                        <div class="card-title">Take Attendance</div>
+                <div class="col-md-12">
+                    <!-- Filter Card -->
+                    <div class="card card-primary card-outline mb-4">
+                        <div class="card-header" style="cursor: pointer;" data-lte-toggle="card-collapse">
+                            <h3 class="card-title"><i class="bi bi-filter me-2"></i>Select Subject and Session</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <label for="subject" class="form-label">Subject</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="bi bi-journal-text"></i></span>
+                                        <select class="form-control" name="subject" id="subject" required>
+                                            <option value="">-- Select Subject --</option>
+                                            {% for subject in subjects %}
+                                                <option value="{{ subject.id }}">{{ subject.subject_name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="session_year" class="form-label">Session Year</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="bi bi-calendar-range"></i></span>
+                                        <select class="form-control" name="session_year" id="session_year" required>
+                                            <option value="">-- Select Session --</option>
+                                            {% for session in session_years %}
+                                                <option value="{{ session.id }}">{{ session|safe }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <!--end::Header-->
-                    <!--begin::Form-->
 
-                    <!--begin::Body-->
-                    <div class="card-body">
-                        <div class="form-group">
-                            <label class="form-label">Subject</label>
-                            <select class="form-control" name="subject" id="subject">
-                                {% for subject in subjects %}
-                                    <option value="{{ subject.id }}">{{ subject.subject_name }}</option>
-                                {% endfor %}
-                            </select>
+                    <!-- Attendance Form & Table -->
+                    <form id="attendance-form" style="display: none;">
+                        {% csrf_token %}
+                        <div class="card card-success card-outline">
+                            <div class="card-header">
+                                <h3 class="card-title"><i class="bi bi-check2-square me-2"></i>Mark Attendance</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="form-group mb-4">
+                                    <label for="attendance_date" class="form-label">Attendance Date</label>
+                                    <input type="date" name="attendance_date" id="attendance_date"
+                                           class="form-control" required>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table table-bordered table-striped">
+                                        <thead class="table-light">
+                                        <tr>
+                                            <th>Student Name</th>
+                                            <th class="text-center" style="width: 120px;">
+                                                Status
+                                                <button type="button" id="check-all" class="btn btn-xs btn-light ms-2"
+                                                        title="Check All">
+                                                    <i class="bi bi-check-all"></i>
+                                                </button>
+                                            </th>
+                                        </tr>
+                                        </thead>
+                                        <tbody id="student-table-body">
+                                        <!-- Student rows will be injected here -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="card-footer text-end">
+                                <button id="save_attendance" class="btn btn-success" type="button">
+                                    <i class="bi bi-save-fill me-2"></i>Save Attendance
+                                </button>
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label class="form-label">Session Year</label>
-                            <select class="form-control" name="session_year" id="session_year">
-                                {% for session_year in session_years %}
-                                    <option value="{{ session_year.id }}">{{ session_year.session_start_year }}
-                                        to {{ session_year.session_end_year }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class=" form-group>">
-                            {% if messages %}
-                                {% for message in messages %}
-                                    {% if message.tags == 'error' %}
-                                        <div class="alert alert-danger"
-                                             style="margin-top: 10px;text-align: center ">{{ message }}</div>
-                                    {% endif %}
-                                    {% if message.tags == 'success' %}
-                                        <div class="alert alert-success"
-                                             style="margin-top: 10px;text-align: center ">{{ message }}</div>
-                                    {% endif %}
-                                {% endfor %}
-                            {% endif %}
-                        </div>
-                    </div>
-                    <!--end::Body-->
-                    <!--begin::Footer-->
-                    <div class="card-footer">
-                        <button type="button" class="btn btn-primary w-100" id="fetch_student">Fetch Student</button>
-                    </div>
-                    <div id="student_data" class="card-footer">
+                    </form>
 
+                    <!-- Loading Spinner -->
+                    <div id="loading-spinner" class="text-center my-4" style="display: none;">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Fetching students...</p>
                     </div>
-                    <!--end::Footer-->
-                    <!--end::Form-->
+
+                    <!-- No Students Message -->
+                    <div id="no-students-message" class="alert alert-info text-center" style="display: none;">
+                        <h4 class="alert-heading">No Students Found</h4>
+                        <p>There are no students enrolled in the selected subject and session.</p>
+                    </div>
                 </div>
             </div>
         </div>
     </section>
 
 {% endblock main_content %}
+
 {% block custom_js %}
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         $(document).ready(function () {
-            $("#fetch_student").click(function () {
-                var subject = $("#subject").val();
-                var session_year = $("#session_year").val();
+            const subjectSelect = $("#subject");
+            const sessionSelect = $("#session_year");
+            const attendanceForm = $("#attendance-form");
+            const studentTableBody = $("#student-table-body");
+            const loadingSpinner = $("#loading-spinner");
+            const noStudentsMessage = $("#no-students-message");
 
-                $.ajax({
-                    url: "{% url 'get_students' %}",
-                    type: "POST",
-                    data: {
-                        subject: subject,
-                        session_year: session_year
-                    },
-                })
-                    .done(function (response) {
-                        var json_data = JSON.parse(response);
-                        console.log(json_data);
-                        var div_data = "<div class='form-group'><label>Attendance Date : </label><input type='date' name='attendance_date' id='attendance_date' class='form-control'></div><div class='row'>";
-                        for (key in json_data) {
-                            div_data += "<div class='col-lg-2'><div class='form-check'><input type='checkbox' checked='checked' name='student_data[]' value='" + json_data[key]['id'] + "'><label class='form-check-label'>" + json_data[key]['name'] + "</label> </div></div> ";
+            function fetchStudents() {
+                const subjectId = subjectSelect.val();
+                const sessionId = sessionSelect.val();
+
+                // Hide previous results
+                attendanceForm.hide();
+                noStudentsMessage.hide();
+
+                if (subjectId && sessionId) {
+                    loadingSpinner.show();
+
+                    $.ajax({
+                        url: "{% url 'get_students' %}",
+                        type: "POST",
+                        headers: {"X-CSRFToken": "{{ csrf_token }}"},
+                        data: {subject: subjectId, session_year: sessionId},
+                        success: function (response) {
+                            loadingSpinner.hide();
+                            studentTableBody.empty();
+
+                            if (response.length > 0) {
+                                $.each(response, function (index, student) {
+                                    let row = `
+                                        <tr>
+                                            <td>${student.name}</td>
+                                            <td class="text-center">
+                                                <div class="form-check form-switch d-inline-block">
+                                                    <input class="form-check-input" type="checkbox" role="switch" name="student_data" value="${student.id}" checked>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    `;
+                                    studentTableBody.append(row);
+                                });
+                                attendanceForm.slideDown();
+                            } else {
+                                noStudentsMessage.slideDown();
+                            }
+                        },
+                        error: function () {
+                            loadingSpinner.hide();
+                            alert("An error occurred while fetching students.");
                         }
-                        div_data += "</div></div>";
-                        div_data += "<div class='form-group'>";
-                        div_data += "<button id='save_attendance' class='btn btn-success w-100 type='button'>Save Attendance Data</button>";
-                        div_data += "</div>";
-
-                        $("#student_data").html(div_data);
-                    })
-                    .fail(function () {
-                        alert("Error in Fetching Students");
                     });
+                }
+            }
 
+            // Trigger fetch on change of either dropdown
+            subjectSelect.change(fetchStudents);
+            sessionSelect.change(fetchStudents);
+
+            // "Check All" functionality
+            $(document).on("click", "#check-all", function () {
+                const isChecked = $(this).data('checked') || false;
+                $('input[name="student_data"]').prop('checked', !isChecked);
+                $(this).data('checked', !isChecked);
             });
 
+            // Save Attendance Data
             $(document).on("click", "#save_attendance", function () {
                 $(this).attr("disabled", "disabled");
                 $(this).text("Saving Attendance Data...");
 
-                var student_data = $("input[name='student_data[]']").map(function () {
+                const student_data = $("input[name='student_data']").map(function () {
                     if ($(this).is(":checked")) {
                         return {"id": $(this).val(), "status": 1};
                     } else {
@@ -113,33 +185,37 @@
                     }
                 }).get();
 
-                var attendance_date = $("#attendance_date").val();
-                var subject_id = $("#subject").val();
-                var session_year_id = $("#session_year").val();
-
-                // Convert the student_data to a JSON string before sending
-                var student_data_json = JSON.stringify(student_data);
+                const attendance_date = $("#attendance_date").val();
+                if (!attendance_date) {
+                    alert("Please select an attendance date.");
+                    $(this).removeAttr("disabled").text("Save Attendance");
+                    return;
+                }
 
                 $.ajax({
                     url: "{% url 'save_attendance_data' %}",
                     type: "POST",
+                    headers: {
+                        "X-CSRFToken": "{{ csrf_token }}"
+                    },
                     data: {
-                        student_ids: student_data_json, // Send the JSON string
+                        student_ids: JSON.stringify(student_data),
                         attendance_date: attendance_date,
-                        subject_id: subject_id,
-                        session_year_id: session_year_id,
+                        subject_id: subjectSelect.val(),
+                        session_year_id: sessionSelect.val(),
                     },
                 })
                     .done(function (response) {
-                        if (response == "OK") {
-                            alert("Attendance Saved");
+                        if (response.status === "success") {
+                            alert(response.message);
                         } else {
-                            alert("Error in saving data");
+                            alert("Error: " + response.message);
                         }
                         location.reload();
                     })
                     .fail(function () {
-                        alert("Error in Saving Students");
+                        alert("A server error occurred. Please try again.");
+                        location.reload();
                     });
             });
         });

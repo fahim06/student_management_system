@@ -6,13 +6,17 @@
     <div class="sidebar-brand">
         <!--begin::Brand Link-->
         <a href="{% url 'staff_profile' %}" class="brand-link">
-            <!--begin::Brand Image-->
-            <img
-                    src="{% static './assets/img/AdminLTELogo.png' %}"
-                    alt="AdminLTE Logo"
-                    class="brand-image opacity-75 shadow"
-            />
-            <!--end::Brand Image-->
+            {% if user.staff.profile_pic %}
+                <img src="{{ user.staff.profile_pic.url }}"
+                     style="width: 33px; height: 33px; border-radius: 50%; object-fit: cover;"
+                     alt="{{ user.username }} Profile"
+                     class="brand-image img-circle shadow-sm">
+            {% else %}
+                <span class="brand-image img-circle shadow-sm d-flex align-items-center justify-content-center bg-primary text-white"
+                      style="width: 33px; height: 33px; font-size: 1.1rem;">
+                    {{ user.first_name|first|upper }}
+                </span>
+            {% endif %}
             <!--begin::Brand Text-->
             <span class="brand-text fw-light">{{ user.username }}</span>
             <!--end::Brand Text-->
@@ -84,22 +88,12 @@
                 </li>
                 </li>
                 <li class="nav-item">
-                    {% url 'staff_add_result' as staff_add_result_url %}
-                    <a href="{{ staff_add_result_url }}" class="nav-link
-                            {% if request.path == staff_add_result_url %} active {% endif %}">
+                    {% url 'staff_manage_results' as staff_manage_result_url %}
+                    <a href="{{ staff_manage_result_url }}" class="nav-link
+                            {% if request.path == staff_manage_result_url %} active {% endif %}">
                         <i class="nav-icon bi bi-clipboard2-check-fill"></i>
                         <p>
                             Result
-                        </p>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    {% url 'edit_student_result' as edit_student_result_url %}
-                    <a href="{{ edit_student_result_url }}" class="nav-link
-                            {% if request.path == edit_student_result_url %} active {% endif %}">
-                        <i class="nav-icon bi bi-clipboard2-check-fill"></i>
-                        <p>
-                            Edit Result
                         </p>
                     </a>
                 </li>

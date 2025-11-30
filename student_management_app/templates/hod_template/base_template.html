@@ -1,5 +1,6 @@
 {% load static %}
 
+{# This is the base template for the entire HOD (Head of Department) portal. All other HOD templates extend this file. #}
 <!doctype html>
 <html lang="en" data-bs-theme="light">
 <!--begin::Head-->
@@ -57,7 +58,19 @@
     <link rel="stylesheet" href="{% static './css/adminlte.css' %}"/>
     <link rel="icon" href="{% static './favicon.ico' %}"/>
     {% block custom_css %}
+        <style>
+            .user-header.bg-gradient-material {
+                /* A modern, Material-3 inspired blue-to-purple gradient */
+                background: linear-gradient(135deg, #5E86F7 0%, #A076F9 100%);
+                color: #fff;
+            }
 
+            .footer-material {
+                background-color: #f8f9fa; /* A subtle, off-white for a modern look */
+                border-top: 1px solid #dee2e6;
+                color: #6c757d; /* Muted text color */
+            }
+        </style>
     {% endblock custom_css %}
 </head>
 <!--end::Head-->
@@ -66,12 +79,14 @@
 <!--begin::App Wrapper-->
 <div class="app-wrapper">
     <!--begin::Header-->
+    {# The main top navigation bar #}
     <nav class="app-header navbar navbar-expand bg-white border-bottom">
         <!--begin::Container-->
         <div class="container-fluid">
             <!--begin::Start Navbar Links-->
             <ul class="navbar-nav">
                 <li class="nav-item">
+                    {# Sidebar toggle button for mobile and smaller screens #}
                     <a class="nav-link" data-lte-toggle="sidebar" href="#" role="button">
                         <i class="bi bi-list"></i>
                     </a>
@@ -80,28 +95,68 @@
             <!--end::Start Navbar Links-->
             <!--begin::End Navbar Links-->
             <ul class="navbar-nav ms-auto">
-                <li class="nav-item">
-                    <a class="nav-link px-3" href="{% url 'logout' %}">
-                        <i class="bi bi-box-arrow-right me-1"></i>
-                        Logout
+                <!--begin::User Menu Dropdown-->
+                <li class="nav-item dropdown user-menu">
+                    <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
+                        {% if user.adminhod.profile_pic %}
+                            <img src="{{ user.adminhod.profile_pic.url }}" class="user-image rounded-circle shadow"
+                                 alt="User Image" style="object-fit: cover;">
+                        {% else %}
+                            <span class="user-image d-flex align-items-center justify-content-center bg-light-subtle rounded-circle shadow"
+                                  style="width: 2.1rem; height: 2.1rem;">
+                                <i class="bi bi-person-fill fs-5 text-primary"></i>
+                            </span>
+                        {% endif %}
+                        <span class="d-none d-md-inline">{{ user.first_name }} {{ user.last_name }}</span>
                     </a>
+                    <ul class="dropdown-menu dropdown-menu-lg dropdown-menu-end">
+                        <!--begin::User Image-->
+                        <li class="user-header bg-gradient-material">
+                            {% if user.adminhod.profile_pic %}
+                                <img src="{{ user.adminhod.profile_pic.url }}" class="rounded-circle shadow"
+                                     alt="User Image" style="width: 90px; height: 90px; object-fit: cover;">
+                            {% else %}
+                                <span class="img-circle shadow d-flex align-items-center justify-content-center bg-light-subtle"
+                                      style="width: 90px; height: 90px;"><i
+                                        class="bi bi-person-fill fs-1 text-primary"></i></span>
+                            {% endif %}
+
+                            <p>
+                                {{ user.first_name }} {{ user.last_name }} - HOD
+                                <small>Member since {{ user.date_joined|date:"M. Y" }}</small>
+                            </p>
+                        </li>
+                        <!--end::User Image-->
+                        <!--begin::Menu Footer-->
+                        <li class="user-footer">
+                            <a href="{% url 'admin_profile' %}" class="btn btn-default btn-flat">Profile</a>
+                            <a href="{% url 'logout' %}" class="btn btn-default btn-flat float-end">Sign out</a>
+                        </li>
+                        <!--end::Menu Footer-->
+                    </ul>
                 </li>
             </ul>
+            <!--end::End Navbar Links-->
             <!--end::End Navbar Links-->
         </div>
         <!--end::Container-->
     </nav>
     <!--end::Header-->
+
+    {# Includes the sidebar navigation menu. Passes user and id context to it. #}
     {% include 'hod_template/sidebar_template.html' with user=user id=id %}
+
     <!--begin::App Main-->
     <main class="app-main">
         <!--begin::App Content Header-->
+        {# This section displays the page title and breadcrumbs for navigation. #}
         <div class="app-content-header">
             <!--begin::Container-->
             <div class="container-fluid">
                 <!--begin::Row-->
                 <div class="row">
                     <div class="col-sm-6">
+                        {# The page title block, to be overridden by child templates. #}
                         <h3 class="mb-0">
                             {% block page_title %}
                             {% endblock page_title %}
@@ -109,6 +164,7 @@
                     </div>
                     <div class="col-sm-6">
                         <ol class="breadcrumb float-sm-end">
+                            {# Breadcrumb navigation trail #}
                             <li class="breadcrumb-item"><a href="{% url 'admin_home' %}">Home</a></li>
                         </ol>
                     </div>
@@ -118,13 +174,18 @@
             <!--end::Container-->
         </div>
         <!--end::App Content Header-->
+
+        {# The main content block where child templates will inject their specific content. #}
         {% block main_content %}{% endblock main_content %}
     </main>
     <!--end::App Main-->
+
+    {# Includes the shared footer template. #}
     {% include 'hod_template/footer.html' %}
 </div>
 <!--end::App Wrapper-->
 <!--begin::Script-->
+{# Core JavaScript libraries required for the template to function. #}
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <!--begin::Third Party Plugin(OverlayScrollbars)-->
 <script
@@ -142,6 +203,7 @@
 <script src="{% static './js/adminlte.js' %}"></script>
 <!--end::Required Plugin(AdminLTE)-->
 
+{# A block for custom JavaScript that can be added by child templates. #}
 {% block custom_js %}
 
 {% endblock custom_js %}

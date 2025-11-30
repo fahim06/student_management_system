@@ -1,22 +1,23 @@
 {
   "builds": [
     {
-      "src": "student_management_system/wsgi.py",
+      "src": "build_files.sh",
       "use": "@vercel/python",
       "config": {
         "maxLambdaSize": "15mb",
-        "runtime": "python3.12"
+        "runtime": "python3.12",
+        "ws": "student_management_system/wsgi.py"
       }
     },
     {
-      "src": "staticfiles_build/static",
+      "src": "staticfiles_build",
       "use": "@vercel/static"
     }
   ],
   "routes": [
     {
       "src": "/static/(.*)",
-      "dest": "/staticfiles_build/static/$1"
+      "dest": "/staticfiles_build/$1"
     },
     {
       "src": "/media/(.*)",
@@ -24,7 +25,7 @@
     },
     {
       "src": "/(.*)",
-      "dest": "student_management_system/wsgi.py"
+      "dest": "build.sh"
     }
   ]
 }

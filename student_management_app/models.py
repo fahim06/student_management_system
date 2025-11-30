@@ -1,7 +1,17 @@
+import os
+
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+
+
+def get_profile_pic_upload_path(instance, filename):
+    """
+    Generates a unique path for profile pictures using the user's username.
+    """
+    ext = filename.split('.')[-1]
+    return os.path.join('', f'{instance.admin.username}.{ext}')
 
 
 # Create your models here.
@@ -24,6 +34,7 @@ class SessionYear(models.Model):
         return f"{self.session_start_year.strftime('%Y')} <b>TO</b> {self.session_end_year.strftime('%Y')}"
 
 
+
 class CustomUser(AbstractUser):
     user_type_data = ((1, "HOD"), (2, "STAFF"), (3, "STUDENT"))
     user_type = models.CharField(default=1, choices=user_type_data, max_length=10)
@@ -32,6 +43,7 @@ class CustomUser(AbstractUser):
 class AdminHOD(models.Model):
     id = models.AutoField(primary_key=True)
     admin = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
+    profile_pic = models.FileField(upload_to=get_profile_pic_upload_path, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -40,10 +52,9 @@ class AdminHOD(models.Model):
 
 
 class Staff(models.Model):
-    id = models.AutoField(primary_key=True)
     admin = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
     address = models.TextField()
-    fcm_token = models.TextField(default="")
+    profile_pic = models.FileField(upload_to=get_profile_pic_upload_path, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -64,24 +75,23 @@ class Courses(models.Model):
 
 
 class Subject(models.Model):
+    subject_code = models.CharField(max_length=20, unique=True, null=True)
     subject_name = models.CharField(max_length=255)
     course = models.ForeignKey(Courses, on_delete=models.CASCADE, default=1)
-    staff = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    staff = models.ForeignKey(Staff, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.subject_name
+        return f"{self.subject_code} - {self.subject_name}"
 
 
 class Student(models.Model):
-    id = models.AutoField(primary_key=True)
     admin = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
     gender = models.CharField(max_length=255)
-    profile_picture = models.FileField()
+    profile_picture = models.FileField(upload_to=get_profile_pic_upload_path, blank=True, null=True)
     address = models.TextField()
-    course = models.ForeignKey(Courses, on_delete=models.DO_NOTHING, null=True)
-    fcm_token = models.TextField(default="")
+    course = models.ForeignKey(Courses, on_delete=models.SET_NULL, null=True)
     session_year = models.ForeignKey(SessionYear, on_delete=models.CASCADE, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -91,7 +101,7 @@ class Student(models.Model):
 
 
 class Attendance(models.Model):
-    subject = models.ForeignKey(Subject, on_delete=models.DO_NOTHING)
+    subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
     attendance_date = models.DateField()
     created_at = models.DateTimeField(auto_now_add=True)
     session_year = models.ForeignKey(SessionYear, on_delete=models.CASCADE)
@@ -99,7 +109,7 @@ class Attendance(models.Model):
 
 
 class AttendanceReport(models.Model):
-    student = models.ForeignKey(Student, on_delete=models.DO_NOTHING)
+    student = models.ForeignKey(Student, on_delete=models.CASCADE)
     attendance = models.ForeignKey(Attendance, on_delete=models.CASCADE)
     status = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -108,7 +118,7 @@ class AttendanceReport(models.Model):
 
 class LeaveReportStudent(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
-    leave_date = models.CharField(max_length=255)
+    leave_date = models.DateField()
     leave_message = models.TextField()
     leave_status = models.IntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -117,7 +127,7 @@ class LeaveReportStudent(models.Model):
 
 class LeaveReportStaff(models.Model):
     staff = models.ForeignKey(Staff, on_delete=models.CASCADE)
-    leave_date = models.CharField(max_length=255)
+    leave_date = models.DateField()
     leave_message = models.TextField()
     leave_status = models.IntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -155,14 +165,18 @@ class NotificationStaff(models.Model):
 
 
 class StudentResult(models.Model):
+    """Stores the academic results for a student in a specific subject."""
     id = models.AutoField(primary_key=True)
-    student_id = models.ForeignKey(Student, on_delete=models.CASCADE)
-    subject_id = models.ForeignKey(Subject, on_delete=models.CASCADE)
+    student = models.ForeignKey(Student, on_delete=models.CASCADE)
+    subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
     subject_exam_marks = models.FloatField(default=0)
     subject_assignment_marks = models.FloatField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    objects = models.Manager()
+
+    class Meta:
+        # Ensures a student can only have one result entry per subject
+        unique_together = ('student', 'subject')
 
 
 @receiver(post_save, sender=CustomUser)
@@ -175,8 +189,7 @@ def create_user_profile(sender, instance, created, **kwargs):
         elif instance.user_type == '3':
             # Avoid hardcoding IDs. It's better to let them be null and set later.
             # This also prevents errors if Course or SessionYear with ID=1 doesn't exist.
-            Student.objects.create(admin=instance,
-                                   address="", profile_picture="", gender="")
+            Student.objects.create(admin=instance, address="", gender="")
     else:
         # If the user is updated, save the related profile
         try:

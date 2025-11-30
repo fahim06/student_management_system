@@ -68,8 +68,8 @@
     <!-- /.login-logo -->
     <div class="card">
         <div class="card-body login-card-body">
-            <p class="login-box-msg">Sign in to Student Management System</p>
-            <form action="/doLogin" method="post">
+            <p class="login-box-msg">Sign in to start your session</p>
+            <form action="{% url 'login' %}" method="post">
                 {% csrf_token %}
                 <div class="input-group mb-3">
                     <input type="email" class="form-control" placeholder="Email" name="email"/>
@@ -83,7 +83,8 @@
                 <div class="row">
                     <div class="col-8">
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault"/>
+                            <input class="form-check-input" type="checkbox" value="remember" id="remember"
+                                   name="remember">
                             <label class="form-check-label" for="flexCheckDefault"> Remember Me </label>
                         </div>
                     </div>
@@ -92,21 +93,21 @@
                         <div class="d-grid gap-2">
                             <button type="submit" class="btn btn-primary">Sign In</button>
                         </div>
-                        {% if messages %}
-                            <div class="col-12">
-                                {% for message in messages %}
-                                    {% if message.tags == 'error' %}
-                                        <div class="alert alert-danger"
-                                             style="margin-top: 10px;text-align: center ">{{ message }}</div>
-                                    {% endif %}
-                                {% endfor %}
-                            </div>
-                        {% endif %}
                     </div>
                     <!-- /.col -->
                 </div>
                 <!--end::Row-->
             </form>
+
+            {% if messages %}
+                <div class="mt-3">
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} text-center py-2" role="alert">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
 
             <p class="mb-1 mt-3 text-center">
                 <a href="{% url 'password_reset' %}">I forgot my password</a>

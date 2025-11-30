@@ -1,6 +1,6 @@
 {% extends 'hod_template/base_template.html' %}
 {% block page_title %}
-    Manage Subject
+    Manage Subjects
 {% endblock page_title %}
 {% block main_content %}
 
@@ -18,31 +18,93 @@
                 </div>
             {% endif %}
             <div class="row">
-                <div class="col-12">
-                    <div class="card">
-                        <div class="card-header">
-                            <h3 class="card-title">Subject Details</h3>
-
+                <div class="col-md-12">
+                    <div class="card card-primary card-outline mb-4 collapsed-card">
+                        <div class="card-header" style="cursor: pointer;" data-lte-toggle="card-collapse">
+                            <h3 class="card-title"><i class="bi bi-plus-circle-fill me-2"></i>Add New Subject</h3>
                             <div class="card-tools">
-                                <div class="input-group input-group-sm" style="width: 150px;">
-                                    <input type="text" name="table_search" class="form-control float-right"
-                                           placeholder="Search">
-                                    <div class="input-group-append">
-                                        <button type="submit" class="btn btn-default"><i class="fas fa-search"></i>
-                                        </button>
+                                <button type="button" class="btn btn-tool" data-lte-toggle="card-collapse"
+                                        title="Toggle Card">
+                                    <i data-lte-icon="expand" class="bi bi-plus-lg"></i>
+                                    <i data-lte-icon="collapse" class="bi bi-dash-lg"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <form role="form" action="{% url 'add_subject_save' %}" method="post">
+                            {% csrf_token %}
+                            <div class="card-body bg-primary-subtle">
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label for="subject_code" class="form-label">Subject Code</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="bi bi-hash"></i></span>
+                                                <input type="text" class="form-control" name="subject_code"
+                                                       id="subject_code" placeholder="E.g., CS101" required>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label for="subject_name" class="form-label">Subject Name</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="bi bi-book-half"></i></span>
+                                                <input type="text" class="form-control" name="subject_name"
+                                                       id="subject_name" placeholder="E.g., Computer Science 101"
+                                                       required>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label for="course" class="form-label">Course</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i
+                                                        class="bi bi-journal-bookmark-fill"></i></span>
+                                                <select class="form-control" name="course" id="course" required>
+                                                    {% for course in courses %}
+                                                        <option value="{{ course.id }}">{{ course.course_name }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label for="staff" class="form-label">Staff</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="bi bi-person-badge"></i></span>
+                                                <select class="form-control" name="staff" id="staff" required>
+                                                    {% for staff in staffs %}
+                                                        <option value="{{ staff.id }}">{{ staff.first_name }} {{ staff.last_name }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
+                            <div class="card-footer text-start">
+                                <a href="javascript:history.back()" class="btn btn-secondary"><i
+                                        class="bi bi-arrow-left-circle me-2"></i>Back</a>
+                                <button type="submit" class="btn btn-primary ms-2"><i
+                                        class="bi bi-save-fill me-2"></i>Save Subject
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="card card-primary card-outline">
+                        <div class="card-header">
+                            <h3 class="card-title"><i class="bi bi-card-list me-2"></i>Existing Subjects</h3>
                         </div>
-                        <!-- /.card-header -->
                         <div class="card-body table-responsive p-0">
                             <table class="table table-hover text-nowrap">
                                 <thead>
                                 <tr>
-                                    <th>ID</th>
+                                    <th>Code</th>
                                     <th>Subject Name</th>
-                                    <th>Course Name</th>
-                                    <th>Course ID</th>
+                                    <th>Course</th>
                                     <th>Staff Name</th>
                                     <th>Action</th>
                                 </tr>
@@ -50,14 +112,22 @@
                                 <tbody>
                                 {% for subject in subjects %}
                                     <tr>
-                                        <td>{{ subject.id }}</td>
+                                        <td>{{ subject.subject_code }}</td>
                                         <td>{{ subject.subject_name }}</td>
                                         <td>{{ subject.course.course_name }}</td>
-                                        <td>{{ subject.course.id }}</td>
-                                        <td>{{ subject.staff.first_name }} {{ subject.staff.last_name }}</td>
+                                        <td>{{ subject.staff.admin.first_name }} {{ subject.staff.admin.last_name }}
+                                            (ID: {{ subject.staff.admin.id }})
+                                        </td>
                                         <td>
-                                            <a href="/edit_subject/{{ subject.id }}"
-                                               class="btn btn-primary btn-sm">Edit</a>
+                                            <a href="{% url 'edit_subject' subject.id %}"
+                                               class="btn btn-primary btn-sm"><i class="bi bi-pencil-square"></i>
+                                                Edit</a>
+                                        </td>
+                                    </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="5" class="text-center text-muted py-4">
+                                            No subjects have been added yet.
                                         </td>
                                     </tr>
                                 {% endfor %}
@@ -67,7 +137,6 @@
                     </div>
                 </div>
             </div>
-        </div>
     </section>
 
 {% endblock main_content %}

@@ -45,16 +45,8 @@ INSTALLED_APPS = [
     'student_management_app',
 ]
 
-# Conditionally add development-specific apps
-if DEBUG:
-    INSTALLED_APPS.append('whitenoise.runserver_nostatic')
-
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-
-    # WhiteNoise middleware should be placed high up
-    'whitenoise.middleware.WhiteNoiseMiddleware',
-
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -95,7 +87,7 @@ if DATABASE_URL:
         'default': dj_database_url.config(
             conn_max_age=600,
             ssl_require=True,
-            engine='django.db.backends.postgresql'  # Ensure psycopg3 is used
+            engine='django.db.backends.postgresql'  # Ensure psycopg2 is used
         )
     }
 elif os.getenv('DB_NAME'):
@@ -135,9 +127,8 @@ USE_TZ = True
 
 # --- Static Files (CSS, JavaScript, Images) ---
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles_build', 'static')
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-STATICFILES_DIRS = [os.path.join(BASE_DIR, 'student_management_app', 'static')]
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles_build')
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'student_management_app/static')]
 
 # --- Media Files (User-uploaded content) ---
 # Using Cloudinary for media storage, so local paths are for fallback.
