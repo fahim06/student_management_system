@@ -21,7 +21,6 @@ from django.contrib import admin
 from django.urls import path, include
 
 from student_management_app import views, hodViews, staffViews, studentViews
-from student_management_app.editResultViewClass import EditResultViewClass
 
 urlpatterns = [
                   path('admin_signup', views.admin_signup, name="admin_signup"),
@@ -110,11 +109,10 @@ urlpatterns = [
                   path('staff_fcmtoken_save', staffViews.staff_fcmtoken_save, name="staff_fcmtoken_save"),
                   path('staff_all_notifications', staffViews.staff_all_notifications, name="staff_all_notifications"),
                   path('staff_manage_results', staffViews.staff_manage_results, name="staff_manage_results"),
-                  path('edit_student_result', EditResultViewClass.as_view(), name="edit_student_result"),
-                  path('fetch_result_student', staffViews.fetch_result_student, name="fetch_result_student"),
 
-                  # Student URL Paths
-                  path('student_home', studentViews.student_home, name="student_home"),
+                  # AJAX endpoint for the redesigned results page
+                  path('staff_get_students_for_results', staffViews.staff_get_students_for_results,
+                       name="staff_get_students_for_results"),
                   path('student_view_attendance', studentViews.student_view_attendance, name="student_view_attendance"),
                   path('student_apply_leave', studentViews.student_apply_leave, name="student_apply_leave"),
                   path('student_apply_leave_save', studentViews.student_apply_leave_save,

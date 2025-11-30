@@ -305,89 +305,81 @@ def staff_all_notifications(request):
 
 def staff_manage_results(request):
     """
-    A unified view for staff to add and edit student results.
+    View for managing student results.
 
-    - GET: Displays dropdowns to select a subject and session.
-    - POST (fetch_students): Fetches students for the selected subject/session
-      and displays a form with their current marks.
-    - POST (save_results): Saves the updated marks for all students.
+    - GET: Renders the initial page with subject and session dropdowns.
+    - POST: Handles the saving of student marks submitted from the form.
+
+    Student fetching is now handled by a separate AJAX endpoint.
     """
     staff_user = Staff.objects.get(admin=request.user)
     subjects = Subject.objects.filter(staff=staff_user)
     session_years = SessionYear.objects.all()
+
+    if request.method == 'POST':
+        # This view now only handles saving the results.
+        subject_id = request.POST.get('subject_id')
+        student_ids = request.POST.getlist('student_ids')
+
+        try:
+            subject_obj = Subject.objects.get(id=subject_id)
+            for student_id in student_ids:
+                assignment_marks = request.POST.get(f'assignment_marks_{student_id}')
+                exam_marks = request.POST.get(f'exam_marks_{student_id}')
+                student_obj = Student.objects.get(id=student_id)
+
+                # Use update_or_create to handle both new and existing results robustly.
+                StudentResult.objects.update_or_create(
+                    student=student_obj,
+                    subject=subject_obj,
+                    defaults={
+                        'subject_assignment_marks': assignment_marks,
+                        'subject_exam_marks': exam_marks
+                    }
+                )
+            messages.success(request, "Results saved successfully!")
+        except (Subject.DoesNotExist, Student.DoesNotExist):
+            messages.error(request, "An error occurred while saving results.")
+        # Redirect back to the same page to show the success/error message
+        return HttpResponseRedirect(reverse('staff_manage_results'))
+
     context = {
         "subjects": subjects,
         "session_years": session_years,
         "staff": staff_user
     }
-
-    if request.method == 'POST':
-        # Scenario 1: Fetching students after subject and session selection
-        if 'fetch_students' in request.POST:
-            subject_id = request.POST.get('subject')
-            session_year_id = request.POST.get('session_year')
-
-            if not subject_id or not session_year_id:
-                messages.error(request, "Please select both a subject and a session.")
-                return render(request, "staff_template/staff_manage_results_template.html", context)
-
-            try:
-                subject_obj = Subject.objects.get(id=subject_id)
-                session_year_obj = SessionYear.objects.get(id=session_year_id)
-                students = Student.objects.filter(course_id=subject_obj.course_id, session_year=session_year_obj)
-
-                # For each student, get or create a result entry
-                student_results = []
-                for student in students:
-                    result, created = StudentResult.objects.get_or_create(
-                        student=student,
-                        subject=subject_obj
-                    )
-                    student_results.append({'student': student, 'result': result})
-
-                context.update({
-                    "student_results": student_results,
-                    "selected_subject_id": subject_id,
-                    "selected_session_year_id": session_year_id
-                })
-            except (Subject.DoesNotExist, SessionYear.DoesNotExist):
-                messages.error(request, "Invalid subject or session selected.")
-
-        # Scenario 2: Saving the marks for the displayed students
-        elif 'save_results' in request.POST:
-            subject_id = request.POST.get('subject_id')
-            student_ids = request.POST.getlist('student_ids')
-
-            try:
-                subject_obj = Subject.objects.get(id=subject_id)
-                for student_id in student_ids:
-                    assignment_marks = request.POST.get(f'assignment_marks_{student_id}')
-                    exam_marks = request.POST.get(f'exam_marks_{student_id}')
-                    student_obj = Student.objects.get(id=student_id)
-
-                    # Update the existing result
-                    StudentResult.objects.filter(student=student_obj, subject=subject_obj).update(
-                        subject_assignment_marks=assignment_marks,
-                        subject_exam_marks=exam_marks
-                    )
-                messages.success(request, "Results saved successfully!")
-            except (Subject.DoesNotExist, Student.DoesNotExist):
-                messages.error(request, "An error occurred while saving results.")
-            return HttpResponseRedirect(reverse('staff_manage_results'))
-
     return render(request, "staff_template/staff_manage_results_template.html", context)
 
 
-@csrf_exempt
-def fetch_result_student(request):
-    subbject_id = request.POST.get('subject_id')
-    student_id = request.POST.get('student_id')
-    # try:
-    result = StudentResult.objects.filte(subject_id=subbject_id, student_id=student_id).exists()
-    if result:
-        result = StudentResult.objects.get(subject_id=subbject_id, student_id=student_id)
-        result_data = {'assign_marks': result.subject_assignment_marks, 'exam_marks': result.subject_exam_marks}
-        return JsonResponse(json.dumps(result_data), safe=False)
-    else:
-        return JsonResponse(json.dumps("False"), safe=False)
-# except Exception as e:
+def staff_get_students_for_results(request):
+    """
+    AJAX endpoint to fetch students and their results for a given subject and session.
+    """
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=405)
+
+    try:
+        subject_id = request.POST.get('subject_id')
+        session_year_id = request.POST.get('session_year_id')
+
+        subject_obj = Subject.objects.get(id=subject_id)
+        session_year_obj = SessionYear.objects.get(id=session_year_id)
+        students = Student.objects.filter(course_id=subject_obj.course_id, session_year=session_year_obj)
+
+        student_results_data = []
+        for student in students:
+            result, created = StudentResult.objects.get_or_create(student=student, subject=subject_obj)
+            student_data = {
+                'student_id': student.id,
+                'student_name': f"{student.admin.first_name} {student.admin.last_name}",
+                'assignment_marks': result.subject_assignment_marks,
+                'exam_marks': result.subject_exam_marks
+            }
+            student_results_data.append(student_data)
+
+        return JsonResponse({'status': 'success', 'student_results': student_results_data})
+
+    except (Subject.DoesNotExist, SessionYear.DoesNotExist):
+        return JsonResponse({'status': 'error', 'message': 'Invalid subject or session selected.'}, status=404)
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
