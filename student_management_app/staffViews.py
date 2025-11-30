@@ -249,26 +249,27 @@ def staff_apply_leave_save(request):
 
 
 def staff_feedback(request):
-    staff_id = Staff.objects.get(admin=request.user)
-    feedback_data = FeedBackStaff.objects.filter(staff_id=staff_id)
-    return render(request, "staff_template/staff_feedback_template.html", {"feedback_data": feedback_data})
+    """
+    Handles both displaying the feedback form and history (GET)
+    and saving new feedback (POST).
+    """
+    staff_obj = Staff.objects.select_related('admin').get(admin=request.user)
 
-
-def staff_feedback_save(request):
-    if request.method != "POST":
-        return HttpResponseRedirect(reverse("staff_feedback"))
-    else:
+    if request.method == 'POST':
         feedback_message = request.POST.get("feedback_message")
+        if not feedback_message:
+            messages.error(request, "Feedback message cannot be empty.")
+        else:
+            try:
+                FeedBackStaff.objects.create(staff=staff_obj, feedback=feedback_message, feedback_reply="")
+                messages.success(request, "Successfully Sent Feedback")
+            except Exception as e:
+                messages.error(request, f"Failed to send feedback: {e}")
+        return HttpResponseRedirect(reverse("staff_feedback"))
 
-        staff_obj = Staff.objects.get(admin=request.user)
-        try:
-            feedback = FeedBackStaff(staff_id=staff_obj, feedback=feedback_message, feedback_reply="")
-            feedback.save()
-            messages.success(request, "Successfully Sent Feedback")
-            return HttpResponseRedirect(reverse("staff_feedback"))
-        except Exception as e:
-            messages.error(request, f"Failed to send feedback: {e}")
-            return HttpResponseRedirect(reverse("staff_feedback"))
+    feedback_data = FeedBackStaff.objects.filter(staff=staff_obj).order_by('-created_at')
+    context = {"feedback_data": feedback_data, "staff": staff_obj}
+    return render(request, "staff_template/staff_feedback_template.html", context)
 
 
 def staff_profile(request):
