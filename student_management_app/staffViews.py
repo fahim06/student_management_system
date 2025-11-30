@@ -143,9 +143,9 @@ def save_attendance_data(request):
 def staff_update_attendance(request):
     staff_user = Staff.objects.get(admin=request.user)
     subjects = Subject.objects.filter(staff=staff_user)
-    session_year_id = SessionYear.objects.all()
+    session_years = SessionYear.objects.all()
     return render(request, "staff_template/staff_update_attendance_template.html",
-                  {"subjects": subjects, "session_year_id": session_year_id})
+                  {"subjects": subjects, "session_years": session_years})
 
 
 def get_attendance_dates(request):

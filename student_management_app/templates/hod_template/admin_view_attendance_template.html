@@ -7,214 +7,163 @@
     <section class="content">
         <div class="container-fluid">
             <div class="row">
-                <div class="col-12">
+                <div class="col-md-12">
                     <div class="card card-primary card-outline mb-4">
-                        <div class="card-header">
-                            <h3 class="card-title"><i class="bi bi-calendar-check me-2"></i>View Attendance</h3>
+                        <div class="card-header" style="cursor: pointer;" data-lte-toggle="card-collapse">
+                            <h3 class="card-title"><i class="bi bi-filter-circle me-2"></i>Filter Attendance Records
+                            </h3>
                         </div>
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="form-group">
+                        <form id="attendance-filter-form">
+                            {% csrf_token %}
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-4 form-group">
                                         <label for="subject" class="form-label">Subject</label>
-                                        <select class="form-select" name="subject" id="subject">
-                                            <option value="">Select Subject</option>
+                                        <select class="form-control" name="subject" id="subject">
+                                            <option value="">-- Select Subject --</option>
                                             {% for subject in subjects %}
                                                 <option value="{{ subject.id }}">{{ subject.subject_name }}</option>
                                             {% endfor %}
                                         </select>
                                     </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
+                                    <div class="col-md-4 form-group">
                                         <label for="session_year_id" class="form-label">Session Year</label>
-                                        <select class="form-select" name="session_year_id" id="session_year_id">
-                                            <option value="">Select Session</option>
-                                            {% for session_year in session_year_id %}
-                                                <option value="{{ session_year.id }}">{{ session_year.session_start_year }}
-                                                    to {{ session_year.session_end_year }}</option>
+                                        <select class="form-control" name="session_year_id" id="session_year_id">
+                                            <option value="">-- Select Session --</option>
+                                            {% for session_year in session_years %}
+                                                <option value="{{ session_year.id }}">{{ session_year|safe }}</option>
                                             {% endfor %}
                                         </select>
                                     </div>
-                                </div>
-                            </div>
-                            <div class="row mt-3">
-                                <div class="col-md-12">
-                                    <div class="form-group" id="attendance_block" style="display: none;">
+                                    <div class="col-md-4 form-group" id="attendance_block" style="display: none;">
                                         <label for="attendance_date" class="form-label">Attendance Date</label>
-                                        <select class="form-select" name="attendance_date" id="attendance_date">
+                                        <select class="form-control" name="attendance_date" id="attendance_date">
                                         </select>
                                     </div>
-                                    <div id="date-loader" class="text-center" style="display: none;">
-                                        <div class="spinner-border text-primary" role="status">
-                                            <span class="visually-hidden">Loading...</span>
-                                        </div>
-                                        <p>Fetching attendance dates...</p>
-                                    </div>
                                 </div>
                             </div>
-                            <div id="error-message" class="alert alert-danger mt-3" style="display: none;"></div>
+                            <div class="card-footer text-end">
+                                <button type="button" class="btn btn-primary" id="fetch_attendance_dates">
+                                    <i class="bi bi-calendar-event me-2"></i>Fetch Dates
+                                </button>
+                                <button type="button" class="btn btn-success" id="fetch_student_attendance"
+                                        style="display: none;">
+                                    <i class="bi bi-people me-2"></i>View Student Attendance
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div id="student_attendance_container" class="card card-primary card-outline"
+                         style="display: none;">
+                        <div class="card-header">
+                            <h3 class="card-title"><i class="bi bi-card-checklist me-2"></i>Student Attendance</h3>
                         </div>
-                        <div id="attendance-results-container" class="card-footer bg-light" style="display: none;">
-                            <h4 id="results-header" class="mb-3"></h4>
-                            <div id="student-data-table"></div>
-                            <div id="student-loader" class="text-center" style="display: none;">
-                                <div class="spinner-border text-primary" role="status">
-                                    <span class="visually-hidden">Loading...</span>
-                                </div>
-                                <p>Fetching student data...</p>
-                            </div>
+                        <div class="card-body table-responsive p-0">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Student Name</th>
+                                    <th>Status</th>
+                                </tr>
+                                </thead>
+                                <tbody id="student_attendance_tbody">
+                                <!-- Data will be inserted here by JavaScript -->
+                                </tbody>
+                            </table>
                         </div>
                     </div>
+
                 </div>
             </div>
         </div>
     </section>
 
 {% endblock main_content %}
+
 {% block custom_js %}
     <script>
         $(document).ready(function () {
-            // Function to get CSRF token from cookies for secure POST requests
-            function getCookie(name) {
-                let cookieValue = null;
-                if (document.cookie && document.cookie !== '') {
-                    const cookies = document.cookie.split(';');
-                    for (let i = 0; i < cookies.length; i++) {
-                        const cookie = cookies[i].trim();
-                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                            break;
-                        }
-                    }
+            const csrf_token = $("input[name=csrfmiddlewaretoken]").val();
+
+            // 1. Fetch Attendance Dates
+            $("#fetch_attendance_dates").click(function () {
+                const subject_id = $("#subject").val();
+                const session_year_id = $("#session_year_id").val();
+
+                if (!subject_id || !session_year_id) {
+                    alert("Please select both a Subject and a Session Year.");
+                    return;
                 }
-                return cookieValue;
-            }
-
-            const csrftoken = getCookie('csrftoken');
-
-            function fetchAttendanceDates() {
-                const subjectId = $("#subject").val();
-                const sessionId = $("#session_year_id").val();
-                const $attendanceBlock = $("#attendance_block");
-                const $attendanceDateSelect = $("#attendance_date");
-                const $dateLoader = $("#date-loader");
-                const $errorMessage = $("#error-message");
-                const $resultsContainer = $("#attendance-results-container");
-
-                // Reset subsequent fields
-                $attendanceBlock.hide();
-                $attendanceDateSelect.html('');
-                $resultsContainer.hide();
-                $errorMessage.hide();
-
-                if (!subjectId || !sessionId) {
-                    return; // Do nothing if one of the fields is not selected
-                }
-
-                $dateLoader.show();
 
                 $.ajax({
                     url: "{% url 'admin_get_attendance_dates' %}",
                     type: "POST",
-                    headers: {'X-CSRFToken': csrftoken},
-                    data: {
-                        subject: subjectId,
-                        session_year_id: sessionId
+                    headers: {
+                        "X-CSRFToken": csrf_token
                     },
-                })
-                    .done(function (response) {
-                        try {
-                            const data = JSON.parse(response);
-                            if (data.length > 0) {
-                                let options = '<option value="">Select a Date</option>';
-                                data.forEach(function (date) {
-                                    options += `<option value="${date.id}">${date.attendance_date}</option>`;
-                                });
-                                $attendanceDateSelect.html(options);
-                                $attendanceBlock.slideDown();
-                            } else {
-                                $errorMessage.text("No attendance records found for the selected subject and session.").slideDown();
-                            }
-                        } catch (e) {
-                            console.error("Failed to parse server response:", e);
-                            $errorMessage.text("Received an invalid response from the server.").slideDown();
-                        }
-                    })
-                    .fail(function () {
-                        $errorMessage.text("An error occurred while fetching attendance dates.").slideDown();
-                    })
-                    .always(function () {
-                        $dateLoader.hide();
-                    });
-            }
+                    data: {
+                        subject: subject_id,
+                        session_year_id: session_year_id
+                    },
+                }).done(function (response) {
+                    let attendance_html = '<option value="">-- Select Date --</option>';
+                    if (response.length > 0) {
+                        response.forEach(function (item) {
+                            attendance_html += `<option value="${item.id}">${item.attendance_date}</option>`;
+                        });
+                        $("#attendance_block").slideDown();
+                        $("#fetch_student_attendance").fadeIn();
+                    } else {
+                        alert("No attendance dates found for this selection.");
+                        $("#attendance_block").slideUp();
+                        $("#fetch_student_attendance").fadeOut();
+                        $("#student_attendance_container").slideUp();
+                    }
+                    $("#attendance_date").html(attendance_html);
+                }).fail(function () {
+                    alert("Error fetching attendance dates.");
+                });
+            });
 
-            function fetchStudentData() {
-                const attendanceDateId = $("#attendance_date").val();
-                const $resultsContainer = $("#attendance-results-container");
-                const $studentDataTable = $("#student-data-table");
-                const $studentLoader = $("#student-loader");
-                const $errorMessage = $("#error-message");
+            // 2. Fetch Student Attendance for a specific date
+            $("#fetch_student_attendance").click(function () {
+                const attendance_date_id = $("#attendance_date").val();
 
-                $errorMessage.hide();
-                $studentDataTable.html('');
-
-                if (!attendanceDateId) {
-                    $resultsContainer.slideUp();
+                if (!attendance_date_id) {
+                    alert("Please select an attendance date.");
                     return;
                 }
-
-                $resultsContainer.slideDown();
-                $studentLoader.show();
 
                 $.ajax({
                     url: "{% url 'admin_get_student_attendance' %}",
                     type: "POST",
-                    headers: {'X-CSRFToken': csrftoken},
-                    data: {attendance_date: attendanceDateId}
-                })
-                    .done(function (response) {
-                        try {
-                            const data = JSON.parse(response);
-                            const subjectName = $("#subject option:selected").text();
-                            const dateText = $("#attendance_date option:selected").text();
-                            $("#results-header").html(`Attendance for <strong>${subjectName}</strong> on <strong>${dateText}</strong>`);
-
-                            let tableHtml = `<table class="table table-striped table-hover">
-                                                <thead class="table-dark">
-                                                    <tr><th>#</th><th>Student Name</th><th>Status</th></tr>
-                                                </thead>
-                                                <tbody>`;
-                            let count = 1;
-                            data.forEach(function (student) {
-                                const statusBadge = student.status
-                                    ? '<span class="badge bg-success">Present</span>'
-                                    : '<span class="badge bg-danger">Absent</span>';
-                                tableHtml += `<tr>
-                                                <td>${count++}</td>
-                                                <td>${student.name}</td>
-                                                <td>${statusBadge}</td>
-                                              </tr>`;
-                            });
-                            tableHtml += `</tbody></table>`;
-                            $studentDataTable.html(tableHtml);
-                        } catch (e) {
-                            console.error("Failed to parse student data response:", e);
-                            $errorMessage.text("Received an invalid response from the server.").slideDown();
-                        }
-                    })
-                    .fail(function () {
-                        $errorMessage.text("An error occurred while fetching student data.").slideDown();
-                        $resultsContainer.slideUp();
-                    })
-                    .always(function () {
-                        $studentLoader.hide();
-                    });
-            }
-
-            // Event Listeners
-            $("#subject, #session_year_id").on("change", fetchAttendanceDates);
-            $("#attendance_date").on("change", fetchStudentData);
+                    headers: {
+                        "X-CSRFToken": csrf_token
+                    },
+                    data: {
+                        attendance_date: attendance_date_id
+                    },
+                }).done(function (response) {
+                    let student_html = "";
+                    if (response.length > 0) {
+                        response.forEach(function (student) {
+                            const status_badge = student.status
+                                ? '<span class="badge bg-success">Present</span>' :
+                                '<span class="badge bg-danger">Absent</span>';
+                            student_html += `<tr><td>${student.id}</td><td>${student.name}</td><td>${status_badge}</td></tr>`;
+                        });
+                        $("#student_attendance_container").slideDown();
+                    } else {
+                        student_html = '<tr><td colspan="3" class="text-center text-muted">No student records found for this date.</td></tr>';
+                        $("#student_attendance_container").slideDown();
+                    }
+                    $("#student_attendance_tbody").html(student_html);
+                }).fail(function () {
+                    alert("Error fetching student attendance data.");
+                });
+            });
         });
     </script>
-{% endblock %}
+{% endblock custom_js %}

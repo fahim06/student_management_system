@@ -3,7 +3,6 @@ import os
 
 from django.contrib import messages
 from django.contrib.sites import requests
-from django.core.files.storage import FileSystemStorage
 from django.db.models import Count, Q
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
@@ -557,42 +556,85 @@ def staff_disapprove_leave(request, leave_id):
 
 
 def admin_view_attendance(request):
+    """
+    Renders the initial page for viewing attendance.
+    This view provides the necessary data for the filter dropdowns.
+    """
     subjects = Subject.objects.all()
-    session_year_id = SessionYear.objects.all()
-    return render(request, "hod_template/admin_view_attendance_template.html",
-                  {"subjects": subjects, "session_year_id": session_year_id})
+    session_years = SessionYear.objects.all()
+    context = {
+        "subjects": subjects,
+        "session_years": session_years
+    }
+    return render(request, "hod_template/admin_view_attendance_template.html", context)
 
 
-@csrf_exempt
 def admin_get_attendance_dates(request):
-    subject = request.POST.get("subject")
-    session_year_id = request.POST.get("session_year_id")
-    subject_obj = Subject.objects.get(id=subject)
-    session_year_obj = SessionYear.objects.get(id=session_year_id)
-    attendance = Attendance.objects.filter(subject_id=subject_obj, session_year_id=session_year_obj)
-    attendance_obj = []
-    for attendance_single in attendance:
-        data = {"id": attendance_single.id, "attendance_date": str(attendance_single.attendance_date),
-                "session_year_id": attendance_single.session_year_id.id}
-        attendance_obj.append(data)
+    """
+    Fetches attendance dates for a given subject and session via AJAX.
+    """
+    if request.method != 'POST':
+        return JsonResponse({"error": "Invalid request"}, status=400)
 
-    return JsonResponse(json.dumps(attendance_obj), safe=False)
+    try:
+        subject_id = request.POST.get("subject")
+        session_year_id = request.POST.get("session_year_id")
+
+        subject_obj = Subject.objects.get(id=subject_id)
+        session_year_obj = SessionYear.objects.get(id=session_year_id)
+
+        # Correctly filter using model objects
+        attendances = Attendance.objects.filter(subject=subject_obj, session_year=session_year_obj)
+
+        # Prepare data for JSON response
+        attendance_list = []
+        for attendance in attendances:
+            data = {
+                "id": attendance.id,
+                "attendance_date": str(attendance.attendance_date),
+                # Correctly access the integer ID
+                "session_year_id": attendance.session_year_id
+            }
+            attendance_list.append(data)
+
+        return JsonResponse(attendance_list, safe=False)
+
+    except (Subject.DoesNotExist, SessionYear.DoesNotExist):
+        return JsonResponse({"error": "Invalid subject or session"}, status=404)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
 
 
-@csrf_exempt
 def admin_get_student_attendance(request):
-    attendance_date = request.POST.get("attendance_date")
-    attendance = Attendance.objects.get(id=attendance_date)
+    """
+    Fetches all student attendance records for a specific attendance date via AJAX.
+    """
+    if request.method != 'POST':
+        return JsonResponse({"error": "Invalid request"}, status=400)
 
-    attendance_date = AttendanceReport.objects.filter(attendance_id=attendance)
-    list_data = []
+    try:
+        attendance_id = request.POST.get("attendance_date")
+        attendance = Attendance.objects.get(id=attendance_id)
 
-    for student in attendance_date:
-        data_small = {"id": student.student_id.admin.id,
-                      "name": student.student_id.admin.first_name + " " + student.student_id.admin.last_name,
-                      "status": student.status}
-        list_data.append(data_small)
-    return JsonResponse(json.dumps(list_data), content_type="application/json", safe=False)
+        # Use select_related for an efficient query
+        attendance_reports = AttendanceReport.objects.filter(attendance=attendance).select_related('student__admin')
+
+        student_data = []
+        for report in attendance_reports:
+            data = {
+                # Correctly access attributes from the related objects
+                "id": report.student.admin.id,
+                "name": f"{report.student.admin.first_name} {report.student.admin.last_name}",
+                "status": report.status
+            }
+            student_data.append(data)
+
+        return JsonResponse(student_data, safe=False)
+
+    except Attendance.DoesNotExist:
+        return JsonResponse({"error": "Attendance record not found"}, status=404)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
 
 
 def admin_profile(request):
