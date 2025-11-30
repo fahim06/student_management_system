@@ -150,29 +150,43 @@ def save_attendance_data(request):
 
 
 def staff_update_attendance(request):
+    """
+    Renders the initial page for updating attendance, providing dropdowns
+    for subjects and session years.
+    """
     staff_user = Staff.objects.get(admin=request.user)
     subjects = Subject.objects.filter(staff=staff_user)
     session_years = SessionYear.objects.all()
-    return render(request, "staff_template/staff_update_attendance_template.html",
-                  {"subjects": subjects, "session_years": session_years})
+    context = {
+        "subjects": subjects,
+        "session_years": session_years,
+        "staff": staff_user  # Pass staff object for base template
+    }
+    return render(request, "staff_template/staff_update_attendance_template.html", context)
 
 
 def get_attendance_dates(request):
+    """
+    AJAX endpoint to fetch attendance dates for a given subject and session.
+    """
     subject = request.POST.get("subject")
     session_year_id = request.POST.get("session_year_id")
     subject_obj = Subject.objects.get(id=subject)
     session_year_obj = SessionYear.objects.get(id=session_year_id)
     attendance = Attendance.objects.filter(subject=subject_obj, session_year=session_year_obj)
-    attendance_obj = []
+    attendance_list = []
     for attendance_single in attendance:
         data = {"id": attendance_single.id, "attendance_date": str(attendance_single.attendance_date),
                 "session_year_id": attendance_single.session_year_id}
-        attendance_obj.append(data)
+        attendance_list.append(data)
 
-    return JsonResponse(json.dumps(attendance_obj), safe=False)
+    return JsonResponse(attendance_list, safe=False)
 
 
 def get_student_attendance(request):
+    """
+    AJAX endpoint to fetch student attendance status for a specific attendance date.
+    """
     attendance_date = request.POST.get("attendance_date")
     attendance = Attendance.objects.get(id=attendance_date)
 
@@ -180,15 +194,19 @@ def get_student_attendance(request):
     list_data = []
 
     for report in attendance_reports:
-        data_small = {"id": report.student.admin.id,
-                      "name": report.student.admin.first_name + " " + report.student.admin.last_name,
-                      "status": report.status}
+        data_small = {
+            "id": report.student.admin.id,
+            "name": f"{report.student.admin.first_name} {report.student.admin.last_name}",
+            "status": report.status
+        }
         list_data.append(data_small)
-    return JsonResponse(json.dumps(list_data), content_type="application/json", safe=False)
+    return JsonResponse(list_data, safe=False)
 
 
-@csrf_exempt
 def save_update_attendance_data(request):
+    """
+    AJAX endpoint to save updated attendance data.
+    """
     student_ids = request.POST.get("student_ids")
     attendance_date = request.POST.get("attendance_date")
     attendance = Attendance.objects.get(id=attendance_date)
@@ -198,13 +216,11 @@ def save_update_attendance_data(request):
     try:
         for stud in json_student:
             student = Student.objects.get(admin=stud['id'])
-            attendance_report = AttendanceReport.objects.get(student_id=student, attendance_id=attendance)
-            attendance_report.status = stud['status']
-            attendance_report.save()
-        return HttpResponse("OK")
-
-    except:
-        return HttpResponse("Error")
+            # Use update to efficiently change the status
+            AttendanceReport.objects.filter(student=student, attendance=attendance).update(status=stud['status'])
+        return JsonResponse({"status": "success", "message": "Attendance updated successfully!"})
+    except Exception as e:
+        return JsonResponse({"status": "error", "message": f"Error updating attendance: {e}"}, status=500)
 
 
 def staff_apply_leave(request):
