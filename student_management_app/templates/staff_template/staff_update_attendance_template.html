@@ -14,10 +14,12 @@
                     </div>
                     <!--end::Header-->
                     <!--begin::Form-->
+                    <form id="update-attendance-form">
+                        {% csrf_token %}
+                        <!--begin::Body-->
+                        <div class="card-body">
+                            <div class="form-group">
 
-                    <!--begin::Body-->
-                    <div class="card-body">
-                        <div class="form-group">
                             <label class="form-label">Subject</label>
                             <select class="form-control" name="subject" id="subject">
                                 {% for subject in subjects %}
@@ -25,19 +27,20 @@
                                 {% endfor %}
                             </select>
                         </div>
-                        <div class="form-group">
-                            <label class="form-label">Session Year</label>
-                            <select class="form-control" name="session_year_id" id="session_year_id">
-                                {% for session_year in session_year_id %}
-                                    <option value="{{ session_year.id }}">{{ session_year.session_start_year }}
-                                        to {{ session_year.session_end_year }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <button type="button" class="btn btn-primary w-100" id="fetch_attendance">Fetch Attendance
-                                Date
-                            </button>
+                            <div class="form-group">
+                                <label class="form-label">Session Year</label>
+                                <select class="form-control" name="session_year_id" id="session_year_id">
+                                    {% for session_year in session_year_id %}
+                                        <option value="{{ session_year.id }}">{{ session_year.session_start_year }}
+                                            to {{ session_year.session_end_year }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <button type="button" class="btn btn-primary w-100" id="fetch_attendance">Fetch
+                                    Attendance Date
+                                </button>
+                            </div>
                         </div>
                         <div class="form-group" id="attendance_block" style="display: none">
                             <label class="form-label">Attendance Date</label>
@@ -51,17 +54,17 @@
                             </div>
                         </div>
                         <div class="form-group" id="fetch_student_block" style="display: none">
-                            <button type="button" class="btn btn-primary w-100" id="fetch_student">Fetch Student Data
+                            <button type="button" class="btn btn-primary w-100" id="fetch_student">Fetch Student
+                                Data
                             </button>
                         </div>
-                    </div>
-                    <!--end::Body-->
+                        <!--end::Body-->
+                    </form>
                     <!--begin::Footer-->
                     <div id="student_data" class="card-footer">
 
                     </div>
                     <!--end::Footer-->
-                    <!--end::Form-->
                 </div>
             </div>
         </div>
@@ -76,9 +79,14 @@
             $("#fetch_attendance").click(function () {
                 var subject = $("#subject").val();
                 var session_year = $("#session_year_id").val();
+                var csrf_token = $("input[name=csrfmiddlewaretoken]").val();
+
                 $.ajax({
                     url: "{% url 'get_attendance_dates' %}",
                     type: "POST",
+                    headers: {
+                        "X-CSRFToken": csrf_token
+                    },
                     data: {
                         subject: subject,
                         session_year_id: session_year,
@@ -116,9 +124,13 @@
             $("#fetch_student").click(function () {
                 var attendance_date = $("#attendance_date").val();
 
+                var csrf_token = $("input[name=csrfmiddlewaretoken]").val();
                 $.ajax({
                     url: "{% url 'get_student_attendance' %}",
                     type: "POST",
+                    headers: {
+                        "X-CSRFToken": csrf_token
+                    },
                     data: {
                         attendance_date: attendance_date
                     },

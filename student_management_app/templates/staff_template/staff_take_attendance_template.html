@@ -13,10 +13,11 @@
                         <div class="card-title">Take Attendance</div>
                     </div>
                     <!--end::Header-->
-                    <!--begin::Form-->
 
                     <!--begin::Body-->
-                    <div class="card-body">
+                    <form id="attendance-form">
+                        {% csrf_token %}
+                        <div class="card-body">
                         <div class="form-group">
                             <label class="form-label">Subject</label>
                             <select class="form-control" name="subject" id="subject">
@@ -48,17 +49,15 @@
                                 {% endfor %}
                             {% endif %}
                         </div>
-                    </div>
-                    <!--end::Body-->
-                    <!--begin::Footer-->
-                    <div class="card-footer">
-                        <button type="button" class="btn btn-primary w-100" id="fetch_student">Fetch Student</button>
-                    </div>
-                    <div id="student_data" class="card-footer">
-
-                    </div>
-                    <!--end::Footer-->
-                    <!--end::Form-->
+                        </div>
+                        <!--end::Body-->
+                        <!--begin::Footer-->
+                        <div class="card-footer">
+                            <button type="button" class="btn btn-primary w-100" id="fetch_student">Fetch Student
+                            </button>
+                        </div>
+                        <div id="student_data" class="card-footer"></div>
+                    </form>
                 </div>
             </div>
         </div>
@@ -70,12 +69,18 @@
     <script>
         $(document).ready(function () {
             $("#fetch_student").click(function () {
+                // Get the CSRF token from the form
+                var csrf_token = $("input[name=csrfmiddlewaretoken]").val();
                 var subject = $("#subject").val();
                 var session_year = $("#session_year").val();
 
                 $.ajax({
                     url: "{% url 'get_students' %}",
                     type: "POST",
+                    // Send CSRF token in headers for this request as well
+                    headers: {
+                        "X-CSRFToken": csrf_token
+                    },
                     data: {
                         subject: subject,
                         session_year: session_year
@@ -90,7 +95,7 @@
                         }
                         div_data += "</div></div>";
                         div_data += "<div class='form-group'>";
-                        div_data += "<button id='save_attendance' class='btn btn-success w-100 type='button'>Save Attendance Data</button>";
+                        div_data += "<button id='save_attendance' class='btn btn-success w-100' type='button'>Save Attendance Data</button>";
                         div_data += "</div>";
 
                         $("#student_data").html(div_data);
@@ -116,6 +121,7 @@
                 var attendance_date = $("#attendance_date").val();
                 var subject_id = $("#subject").val();
                 var session_year_id = $("#session_year").val();
+                var csrf_token = $("input[name=csrfmiddlewaretoken]").val();
 
                 // Convert the student_data to a JSON string before sending
                 var student_data_json = JSON.stringify(student_data);
@@ -123,6 +129,10 @@
                 $.ajax({
                     url: "{% url 'save_attendance_data' %}",
                     type: "POST",
+                    // Send CSRF token in headers
+                    headers: {
+                        "X-CSRFToken": csrf_token
+                    },
                     data: {
                         student_ids: student_data_json, // Send the JSON string
                         attendance_date: attendance_date,
@@ -131,10 +141,11 @@
                     },
                 })
                     .done(function (response) {
-                        if (response == "OK") {
-                            alert("Attendance Saved");
+                        // Handle JSON response from the improved view
+                        if (response.status === "success") {
+                            alert(response.message);
                         } else {
-                            alert("Error in saving data");
+                            alert("Error: " + response.message);
                         }
                         location.reload();
                     })

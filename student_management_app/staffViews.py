@@ -78,7 +78,6 @@ def staff_take_attendance(request):
                   {"subjects": subjects, "session_years": session_years})
 
 
-@csrf_exempt
 def get_students(request):
     subject_id = request.POST.get('subject')
     session_year = request.POST.get('session_year')
@@ -95,30 +94,50 @@ def get_students(request):
     return JsonResponse(json.dumps(list_data), content_type="application/json", safe=False)
 
 
-@csrf_exempt
 def save_attendance_data(request):
-    student_ids = request.POST.get("student_ids")
-    subject_id = request.POST.get("subject_id")
-    attendance_date = request.POST.get("attendance_date")
-    session_year_id = request.POST.get("session_year_id")
-
-    subject_model = Subject.objects.get(id=subject_id)
-    session_model = SessionYear.objects.get(id=session_year_id)
-    json_student = json.loads(student_ids)
+    """
+    Saves attendance data submitted via AJAX.
+    This view is protected by CSRF and handles data validation.
+    """
+    if request.method != 'POST':
+        return JsonResponse({"status": "error", "message": "Invalid request method"}, status=405)
 
     try:
-        attendance = Attendance(subject_id=subject_model, attendance_date=attendance_date,
-                                session_year_id=session_model)
+        student_data = json.loads(request.POST.get("student_ids"))
+        subject_id = request.POST.get("subject_id")
+        attendance_date = request.POST.get("attendance_date")
+        session_year_id = request.POST.get("session_year_id")
+
+        if not all([student_data, subject_id, attendance_date, session_year_id]):
+            return JsonResponse({"status": "error", "message": "Missing required data"}, status=400)
+
+        subject_model = Subject.objects.get(id=subject_id)
+        session_model = SessionYear.objects.get(id=session_year_id)
+
+        # Create a single attendance record for this date and subject
+        attendance, created = Attendance.objects.get_or_create(
+            subject=subject_model,
+            attendance_date=attendance_date,
+            session_year=session_model
+        )
+
         attendance.save()
 
-        for stud in json_student:
+        for stud in student_data:
             student = Student.objects.get(admin=stud['id'])
-            attendance_report = AttendanceReport(student_id=student, attendance_id=attendance, status=stud['status'])
-            attendance_report.save()
-        return HttpResponse("OK")
+            # Use update_or_create to prevent duplicate entries if the form is submitted twice
+            AttendanceReport.objects.update_or_create(
+                student=student,
+                attendance=attendance,
+                defaults={'status': stud['status']}
+            )
 
-    except:
-        return HttpResponse("Error")
+        return JsonResponse({"status": "success", "message": "Attendance saved successfully!"})
+
+    except Exception as e:
+        # Log the error for debugging and return a specific error message
+        print(f"Error saving attendance: {e}")
+        return JsonResponse({"status": "error", "message": str(e)}, status=500)
 
 
 def staff_update_attendance(request):
@@ -129,34 +148,32 @@ def staff_update_attendance(request):
                   {"subjects": subjects, "session_year_id": session_year_id})
 
 
-@csrf_exempt
 def get_attendance_dates(request):
     subject = request.POST.get("subject")
     session_year_id = request.POST.get("session_year_id")
     subject_obj = Subject.objects.get(id=subject)
     session_year_obj = SessionYear.objects.get(id=session_year_id)
-    attendance = Attendance.objects.filter(subject_id=subject_obj, session_year_id=session_year_obj)
+    attendance = Attendance.objects.filter(subject=subject_obj, session_year=session_year_obj)
     attendance_obj = []
     for attendance_single in attendance:
         data = {"id": attendance_single.id, "attendance_date": str(attendance_single.attendance_date),
-                "session_year_id": attendance_single.session_year_id.id}
+                "session_year_id": attendance_single.session_year_id}
         attendance_obj.append(data)
 
     return JsonResponse(json.dumps(attendance_obj), safe=False)
 
 
-@csrf_exempt
 def get_student_attendance(request):
     attendance_date = request.POST.get("attendance_date")
     attendance = Attendance.objects.get(id=attendance_date)
 
-    attendance_date = AttendanceReport.objects.filter(attendance_id=attendance)
+    attendance_reports = AttendanceReport.objects.filter(attendance=attendance).select_related('student__admin')
     list_data = []
 
-    for student in attendance_date:
-        data_small = {"id": student.student_id.admin.id,
-                      "name": student.student_id.admin.first_name + " " + student.student_id.admin.last_name,
-                      "status": student.status}
+    for report in attendance_reports:
+        data_small = {"id": report.student.admin.id,
+                      "name": report.student.admin.first_name + " " + report.student.admin.last_name,
+                      "status": report.status}
         list_data.append(data_small)
     return JsonResponse(json.dumps(list_data), content_type="application/json", safe=False)
 
