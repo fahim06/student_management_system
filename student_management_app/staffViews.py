@@ -224,28 +224,29 @@ def save_update_attendance_data(request):
 
 
 def staff_apply_leave(request):
-    staff_obj = Staff.objects.get(admin=request.user)
-    leave_data = LeaveReportStaff.objects.filter(staff_id=staff_obj)
-    return render(request, "staff_template/staff_apply_leave_template.html", {"leave_data": leave_data})
+    """
+    Handles both displaying the leave application form and history (GET)
+    and saving a new leave application (POST).
+    """
+    staff_obj = Staff.objects.select_related('admin').get(admin=request.user)
 
-
-def staff_apply_leave_save(request):
-    if request.method != "POST":
-        return HttpResponseRedirect(reverse("staff_apply_leave"))
-    else:
+    if request.method == 'POST':
         leave_date = request.POST.get("leave_date")
         leave_message = request.POST.get("leave_message")
 
-        staff_obj = Staff.objects.get(admin=request.user)
-        try:
-            leave_report = LeaveReportStaff(staff_id=staff_obj, leave_date=leave_date, leave_message=leave_message,
-                                            leave_status=0)
-            leave_report.save()
-            messages.success(request, "Successfully Applied for Leave")
-            return HttpResponseRedirect(reverse("staff_apply_leave"))
-        except Exception as e:
-            messages.error(request, f"Failed to Apply for Leave: {e}")
-            return HttpResponseRedirect(reverse("staff_apply_leave"))
+        if not leave_date or not leave_message:
+            messages.error(request, "Please provide both a date and a reason for your leave.")
+        else:
+            try:
+                LeaveReportStaff.objects.create(staff=staff_obj, leave_date=leave_date, leave_message=leave_message)
+                messages.success(request, "Successfully Applied for Leave")
+            except Exception as e:
+                messages.error(request, f"Failed to Apply for Leave: {e}")
+        return HttpResponseRedirect(reverse("staff_apply_leave"))
+
+    leave_data = LeaveReportStaff.objects.filter(staff=staff_obj).order_by('-leave_date')
+    context = {"leave_data": leave_data, "staff": staff_obj}
+    return render(request, "staff_template/staff_apply_leave_template.html", context)
 
 
 def staff_feedback(request):
